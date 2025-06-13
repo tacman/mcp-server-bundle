@@ -1,5 +1,7 @@
 # MCP Server Bundle
 
+[![PHP CI](https://github.com/EdouardCourty/mcp-server-bundle/actions/workflows/php_ci.yml/badge.svg)](https://github.com/EdouardCourty/mcp-server-bundle/actions/workflows/php_ci.yml)
+
 A powerful Symfony bundle for handling MCP (Message Control Protocol) server implementations, providing tools for JSON-RPC request handling and tool management.    
 _Read the [official MCP specification](https://modelcontextprotocol.io/docs/concepts/tools#overview)._
 
