@@ -1,7 +1,7 @@
 # MCP Server Bundle
 
-A powerful Symfony bundle for handling MCP (Message Control Protocol) server implementations, providing tools for JSON-RPC request handling and tool management.  
-Read the [documentation](https://modelcontextprotocol.io/docs/concepts/tools#overview).
+A powerful Symfony bundle for handling MCP (Message Control Protocol) server implementations, providing tools for JSON-RPC request handling and tool management.    
+_Read the [official MCP specification](https://modelcontextprotocol.io/docs/concepts/tools#overview)._
 
 > [!WARNING]  
 > The specification of the Model Context Protocol (MCP) changes frequently.
@@ -22,12 +22,12 @@ Read the [documentation](https://modelcontextprotocol.io/docs/concepts/tools#ove
 ## Getting Started
 
 The MCP Server Bundle provides a structured way to create and manage tools that can be used by clients via JSON-RPC requests.  
-It includes features for input validation, tool management, and method handling.
+It includes features for MCP tool management, and JSON-RPC method handling.
 
 This bundle is designed to be flexible and extensible, allowing developers to create custom tool handlers and method handlers as needed.  
 MethodHandlers and ToolHandlers are registered and autowired using attributes, making it easy to define and manage your own tools.
 
-### Configuration
+### Installation
 
 1. Install the MCP Server Bundle via Composer:
 ```bash
@@ -48,34 +48,53 @@ mcp_controller:
   resource: '@McpServerBundle/Controller'
 ```
 
-### Tool Handlers
+### Tools
 
-Tool Handlers are the core components of the MCP Server Bundle. They allow you to define and manage tools that can be used by clients.
+Tools are the core components of the MCP Server Bundle. They allow you to define and manage custom logic that can be triggered by clients.
 
-#### Creating a Tool Handler
+#### Creating a Tool
 
 1. Create a new class that will handle your tool logic
 2. Use the `#[AsTool]` attribute to register your tool
-3. Define the input schema for your tool using a class with validation constraints
+3. Define the input schema for your tool using a class with validation constraints and OpenAPI attributes (examples below)
 4. Implement the `__invoke` method to handle the tool logic and return a `ToolResponse`
 
 _As Tool classes are services within the Symfony application, any dependency can be injected in it, using the constructor, like any other service._
 
 Example:
 
+- Tool input schema class:
+```php
+#[OA\Schema(required: ['emailAddress', 'username'])]
+class CreateUserSchema
+{
+    #[Assert\Email]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 5, max: 255)]
+    #[OA\Property(description: 'The email address of the user', type: 'string', maxLength: 255, minLength: 5, nullable: false)]
+    public string $emailAddress;
+
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 3, max: 50)]
+    #[OA\Property(description: 'The username of the user', type: 'string', maxLength: 50, minLength: 3, nullable: false)]
+    public string $username;
+}
+```
+
+- Tool class
 ```php
 <?php
 
-use App\Model\CreateUser; // Your input schema class
+use App\Schema\CreateUserSchema; // Your input schema class
 use Ecourty\McpServerBundle\Attribute\AsTool;
 use Ecourty\McpServerBundle\Attribute\ToolAnnotations;
 use Ecourty\McpServerBundle\IO\ToolResponse;
 
 #[AsTool(
-    name: 'create_user',
-    description: 'Creates a new user in the system',
+    name: 'create_user', # Unique identifier for the tool, used by clients to call it
+    description: 'Creates a new user in the system', # This description is used by LLMs to understand the tool's purpose
     annotations: new ToolAnnotations(
-        title: 'Create a user', // A human-readable title for the tool
+        title: 'Create a user', // A human-readable title for the tool, useful for documentation
         readOnlyHint: false, // Defines the request is not read-only (creates a user)
         destructiveHint: false, // Defines the request is not destructive (does not delete data)
         idempotentHint: false, // Defines the request cannot be repeated without changing the state
@@ -84,7 +103,7 @@ use Ecourty\McpServerBundle\IO\ToolResponse;
 )]
 class CreateUserTool
 {
-    public function __invoke(CreateUser $createUser): ToolResponse
+    public function __invoke(CreateUserSchema $createUserSchema): ToolResponse
     {
         // Your logic here...
         // $user = new User();
@@ -94,7 +113,7 @@ class CreateUserTool
 }
 ```
 
-#### Tool Attributes
+Tool Attributes
 
 The `#[AsTool]` attribute supports the following properties:
 
@@ -223,22 +242,25 @@ Please ensure your code follows our coding standards and includes appropriate te
 
 ### Development Setup
 
-1. Clone the repository
-2. Install dependencies:
+1. Fork and clone the repository
+2. Install dependencies
 ```bash
 composer install
 ```
 
-3. Fix the code style:
+3. Make your chages
+
+3. Fix the code style and run PHPStan
 ```bash
 composer fix-cs
+composer phpstan
 ```
 
-4. Run tests:
+4. Run the tests
 ```bash
 composer test
 ```
 
 ## License
 
-This bundle is licensed under the MIT License. See the LICENSE file for details.
+This bundle is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
