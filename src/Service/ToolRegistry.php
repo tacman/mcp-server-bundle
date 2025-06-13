@@ -46,13 +46,21 @@ class ToolRegistry
      * @internal
      *
      * @see ToolPass
+     *
+     * @param array{
+     *      title: string,
+     *      readOnlyHint: bool,
+     *      destructiveHint: bool,
+     *      idempotentHint: bool,
+     *      openWorldHint: bool,
+     *  } $annotations
      */
     public function addToolDefinition(
         string $name,
         string $description,
         array $inputSchema,
         string $inputSchemaClass,
-        array $toolAnnotations,
+        array $annotations,
     ): void {
         if (isset($this->toolDefinitions[$name])) {
             throw new \LogicException(\sprintf('Tool with name "%s" is already registered.', $name));
@@ -63,7 +71,7 @@ class ToolRegistry
             description: $description,
             inputSchema: $inputSchema,
             inputSchemaClass: $inputSchemaClass,
-            annotations: $toolAnnotations,
+            annotations: $annotations,
         );
     }
 }

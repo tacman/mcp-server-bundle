@@ -14,7 +14,7 @@ class ToolDefinition
     /**
      * @param array{
      *     title: string,
-     *     readonlyHint: bool,
+     *     readOnlyHint: bool,
      *     destructiveHint: bool,
      *     idempotentHint: bool,
      *     openWorldHint: bool,
