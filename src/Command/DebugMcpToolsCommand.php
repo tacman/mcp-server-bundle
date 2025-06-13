@@ -67,7 +67,7 @@ class DebugMcpToolsCommand extends Command
                     $tool->annotations['idempotentHint'] ? 'Yes' : 'No',
                     $tool->annotations['openWorldHint'] ? 'Yes' : 'No',
                 ],
-            ]
+            ],
         );
 
         return self::SUCCESS;
