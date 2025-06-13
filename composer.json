@@ -1,0 +1,63 @@
+{
+    "name": "ecourty/mcp-server-bundle",
+    "description": "A Symfony Bundle to create MCP servers",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "keywords": [
+        "symfony",
+        "bundle",
+        "mcp",
+        "server",
+        "model context protocol"
+    ],
+    "authors": [
+        {
+            "name": "Edouard Courty",
+            "email": "edouard.courty2@gmail.com",
+            "homepage": "https://github.com/EdouardCourty"
+        }
+    ],
+    "require": {
+        "symfony/framework-bundle": "^7.3",
+        "symfony/serializer-pack": "^1.3",
+        "symfony/http-kernel": "^7.3",
+        "symfony/validator": "^7.3",
+        "zircote/swagger-php": "^5.1",
+        "symfony/console": "^7.3",
+        "symfony/runtime": "^7.3"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.1",
+        "friendsofphp/php-cs-fixer": "^3.75",
+        "phpunit/phpunit": "^12.1",
+        "symfony/browser-kit": "^7.3",
+        "symfony/yaml": "^7.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ecourty\\McpServerBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ecourty\\McpServerBundle\\Tests\\": "tests/",
+            "Ecourty\\McpServerBundle\\TestApp\\": "tests/TestApp/src/"
+        }
+    },
+    "scripts": {
+        "test": [
+            "phpunit"
+        ],
+        "cs-fix": [
+            "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix"
+        ],
+        "phpstan": [
+            "phpstan analyse -c phpstan.neon --memory-limit=-1"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "symfony/runtime": true
+        }
+    }
+}

@@ -1,0 +1,10 @@
+# IDE / Host system files
+.idea
+.DS_Store
+
+# Dependencies
+vendor
+
+# Test-related data
+.phpunit.result.cache
+tests/TestApp/var

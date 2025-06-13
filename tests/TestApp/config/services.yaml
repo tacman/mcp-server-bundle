@@ -1,0 +1,8 @@
+---
+services:
+  _defaults:
+    autoconfigure: true
+    autowire: true
+
+  Ecourty\McpServerBundle\TestApp\:
+    resource: ../src/*

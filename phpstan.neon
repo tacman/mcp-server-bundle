@@ -1,0 +1,11 @@
+parameters:
+	level: 8
+	paths:
+		- src
+		- tests
+	excludePaths:
+	    - tests/TestApp/var
+
+	ignoreErrors:
+	    -
+	        identifier: missingType.iterableValue
