@@ -16,7 +16,7 @@ _Read the [official MCP specification](https://modelcontextprotocol.io/docs/conc
 - [Tools](#tools)
   - [Creating Tools](#creating-tools)
   - [Tool Events](#tool-events)
-  - [Tool Responses](#tool-responses)
+  - [Tool Results](#tool-results)
   - [Input Schema Management](#input-schema-management)
 - [JSON-RPC Methods](#json-rpc-methods)
   - [Built-in Methods](#built-in-methods)
@@ -63,7 +63,7 @@ Tools are the core components of the MCP Server Bundle. They allow you to define
 1. Create a new class that will handle your tool logic
 2. Use the `#[AsTool]` attribute to register your tool
 3. Define the input schema for your tool using a class with validation constraints and OpenAPI attributes
-4. Implement the `__invoke` method to handle the tool logic and return a `ToolResponse`
+4. Implement the `__invoke` method to handle the tool logic and return a `ToolResult`
 
 _As Tool classes are services within the Symfony application, any dependency can be injected in it, using the constructor, like any other service._
 
@@ -120,9 +120,9 @@ class CreateUserTool
 
 The bundle provides several events that you can listen to:
 
-- `ToolCallEvent`: Dispatched before a tool is called
-- `ToolResponseEvent`: Dispatched after a tool has been called
-- `ToolErrorEvent`: Dispatched when a tool throws an exception
+- `ToolCallEvent`: Dispatched before a tool is called, contains the tool name and input data
+- `ToolResultEvent`: Dispatched after a tool has been called, contains the result of the tool call
+- `ToolCallExceptionEvent`: Dispatched when a tool throws an exception, contains the tool name, input data and throwable
 
 Example of event listener:
 ```php
@@ -139,17 +139,17 @@ class ToolCallListener
 }
 ```
 
-### Tool Responses
+### Tool Results
 
-The MCP specification states that tool responses should consist of an array of objects.  
+The MCP specification states that tool results should consist of an array of objects.  
 The bundle provides several result types that can be combined in a single `ToolResult` object:
 
-- `TextToolResult`: For text-based responses
-- `ImageToolResult`: For image responses
-- `AudioToolResponse`: For audio responses
-- `ResourceToolResponse`: For file or resource responses
+- `TextToolResult`: For text-based results
+- `ImageToolResult`: For image results
+- `AudioToolResult`: For audio results
+- `ResourceToolResult`: For file or resource results
 
-All tool results must be wrapped in a `ToolResult` object, which can contain multiple responses and handle error state.
+All tool results must be wrapped in a `ToolResult` object, which can contain multiple results and handle error state.
 
 Example:
 ```php
@@ -168,14 +168,14 @@ class MyTool
         $fileContent = file_get_contents($payload->filePath);
         $anotherFileContent = file_get_contents($payload->anotherFilePath);
 
-        // Create individual responses
-        $textResponse = new TextToolResult($fileContent);
-        $anotherTextResponse = new TextToolResult($anotherFileContent);
+        // Create individual results
+        $textResult = new TextToolResult($fileContent);
+        $anotherTextResult = new TextToolResult($anotherFileContent);
 
         // Combine them in a ToolResult
         return new ToolResult([
-            $textResponse,
-            $anotherTextResponse,
+            $textResult,
+            $anotherTextResult,
         ]);
     }
 }
@@ -206,10 +206,10 @@ class MyTool
 ```
 
 The `ToolResult` class provides the following features:
-- Combine multiple responses of different types
+- Combine multiple results of different types
 - Handle error state
 - Automatic serialization to the correct format
-- Type safety for all responses
+- Type safety for all results
 
 ### Input Schema Management
 
@@ -267,7 +267,7 @@ The bundle provides a robust system for handling JSON-RPC requests.
 3. **`tools/call`**
    - Executes a specific tool
    - Handles input validation and tool execution
-   - Returns the tool's response
+   - Returns the tool's result or error information
 
 These methods are automatically registered and handled by the bundle. You don't need to implement them yourself.
 
