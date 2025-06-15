@@ -13,11 +13,15 @@ _Read the [official MCP specification](https://modelcontextprotocol.io/docs/conc
 ## Table of Contents
 
 - [Getting Started](#getting-started)
-  - [Configuration](#configuration)
-  - [Tool Handlers](#tool-handlers)
+- [Tools](#tools)
+  - [Creating Tools](#creating-tools)
+  - [Tool Events](#tool-events)
+  - [Tool Responses](#tool-responses)
   - [Input Schema Management](#input-schema-management)
-  - [JSON-RPC Method Handlers](#json-rpc-method-handlers)
-  - [Developer Experience](#developer-experience)
+- [JSON-RPC Methods](#json-rpc-methods)
+  - [Built-in Methods](#built-in-methods)
+  - [Custom Methods](#custom-methods)
+- [Developer Experience](#developer-experience)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -50,15 +54,15 @@ mcp_controller:
   resource: '@McpServerBundle/Controller'
 ```
 
-### Tools
+## Tools
 
 Tools are the core components of the MCP Server Bundle. They allow you to define and manage custom logic that can be triggered by clients.
 
-#### Creating a Tool
+### Creating Tools
 
 1. Create a new class that will handle your tool logic
 2. Use the `#[AsTool]` attribute to register your tool
-3. Define the input schema for your tool using a class with validation constraints and OpenAPI attributes (examples below)
+3. Define the input schema for your tool using a class with validation constraints and OpenAPI attributes
 4. Implement the `__invoke` method to handle the tool logic and return a `ToolResponse`
 
 _As Tool classes are services within the Symfony application, any dependency can be injected in it, using the constructor, like any other service._
@@ -83,15 +87,13 @@ class CreateUserSchema
 }
 ```
 
-- Tool class
-
+- Tool class:
 ```php
-<?php
-
-use App\Schema\CreateUserSchema; // Your input schema class
+use App\Schema\CreateUserSchema;
 use Ecourty\McpServerBundle\Attribute\AsTool;
 use Ecourty\McpServerBundle\Attribute\ToolAnnotations;
-use Ecourty\McpServerBundle\IO\GenericToolResponse;
+use Ecourty\McpServerBundle\IO\TextToolResult;
+use Ecourty\McpServerBundle\IO\ToolResult;
 
 #[AsTool(
     name: 'create_user', # Unique identifier for the tool, used by clients to call it
@@ -106,30 +108,108 @@ use Ecourty\McpServerBundle\IO\GenericToolResponse;
 )]
 class CreateUserTool
 {
-    public function __invoke(CreateUserSchema $createUserSchema): GenericToolResponse
+    public function __invoke(CreateUserSchema $createUserSchema): ToolResult
     {
         // Your logic here...
-        // $user = new User();
-
-        return new GenericToolResponse(data: $user);
+        return new ToolResult([new TextToolResult('User created successfully!')]);
     }
 }
 ```
 
-Tool Attributes
+### Tool Events
 
-The `#[AsTool]` attribute supports the following properties:
+The bundle provides several events that you can listen to:
 
-- `name` (string, required): The unique identifier for your tool, which can be called by clients
-- `description` (string, optional): A human-readable description of the tool, useful for LLMs to understand its purpose
-- `annotations` (ToolAnnotations, optional): Additional metadata about the tool's behavior
+- `ToolCallEvent`: Dispatched before a tool is called
+- `ToolResponseEvent`: Dispatched after a tool has been called
+- `ToolErrorEvent`: Dispatched when a tool throws an exception
 
-The `ToolAnnotations` class provides the following properties:
-- `title` (string): A human-readable title for the tool
-- `readOnlyHint` (bool): Indicates if the tool only reads data
-- `destructiveHint` (bool): Indicates if the tool performs destructive operations
-- `idempotentHint` (bool): Indicates if the tool can be safely repeated
-- `openWorldHint` (bool): Indicates if the tool interacts with external systems
+Example of event listener:
+```php
+use Ecourty\McpServerBundle\Event\ToolCallEvent;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+
+#[AsEventListener(event: ToolCallEvent::class)]
+class ToolCallListener
+{
+    public function __invoke(ToolCallEvent $event): void
+    {
+        // Your logic here...
+    }
+}
+```
+
+### Tool Responses
+
+The MCP specification states that tool responses should consist of an array of objects.  
+The bundle provides several result types that can be combined in a single `ToolResult` object:
+
+- `TextToolResult`: For text-based responses
+- `ImageToolResult`: For image responses
+- `AudioToolResponse`: For audio responses
+- `ResourceToolResponse`: For file or resource responses
+
+All tool results must be wrapped in a `ToolResult` object, which can contain multiple responses and handle error state.
+
+Example:
+```php
+<?php
+
+use App\Schema\ReadFileSchema;
+use Ecourty\McpServerBundle\Attribute\AsTool;
+use Ecourty\McpServerBundle\IO\TextToolResult;
+use Ecourty\McpServerBundle\IO\ToolResult;
+
+#[AsTool(name: 'read_file', description: 'Reads a file and returns its content')]
+class MyTool
+{
+    public function __invoke(ReadFileSchema $payload): ToolResult
+    {
+        $fileContent = file_get_contents($payload->filePath);
+        $anotherFileContent = file_get_contents($payload->anotherFilePath);
+
+        // Create individual responses
+        $textResponse = new TextToolResult($fileContent);
+        $anotherTextResponse = new TextToolResult($anotherFileContent);
+
+        // Combine them in a ToolResult
+        return new ToolResult([
+            $textResponse,
+            $anotherTextResponse,
+        ]);
+    }
+}
+```
+
+Error handling example:
+```php
+use Ecourty\McpServerBundle\IO\TextToolResult;
+use Ecourty\McpServerBundle\IO\ToolResult;
+
+class MyTool
+{
+    public function __invoke(): ToolResult
+    {
+        try {
+            // Your logic here...
+            return new ToolResult([
+                new TextToolResult('Success!')
+            ]);
+        } catch (\Exception $e) {
+            return new ToolResult(
+                [new TextToolResult($e->getMessage())],
+                isError: true
+            );
+        }
+    }
+}
+```
+
+The `ToolResult` class provides the following features:
+- Combine multiple responses of different types
+- Handle error state
+- Automatic serialization to the correct format
+- Type safety for all responses
 
 ### Input Schema Management
 
@@ -168,11 +248,11 @@ class CreateUser
 
 This ensures that your tool handlers always receive properly validated and sanitized data.
 
-### JSON-RPC Method Handlers
+## JSON-RPC Methods
 
-The bundle provides a robust system for handling JSON-RPC requests. By default, it includes three essential method handlers:
+The bundle provides a robust system for handling JSON-RPC requests.
 
-#### Built-in Method Handlers
+### Built-in Methods
 
 1. **`initialize`**
    - Called when a client first connects to the server
@@ -191,7 +271,7 @@ The bundle provides a robust system for handling JSON-RPC requests. By default, 
 
 These methods are automatically registered and handled by the bundle. You don't need to implement them yourself.
 
-#### Creating Custom Method Handlers
+### Custom Methods
 
 You can create your own JSON-RPC method handlers for additional functionality:
 
@@ -227,11 +307,11 @@ The `#[AsMethodHandler]` attribute supports:
 
 - `method` (string, required): The JSON-RPC method name
 
-### Developer Experience
+## Developer Experience
 
 The bundle provides several tools to help you during development:
 
-#### Debug Command
+### Debug Command
 
 The `debug:mcp-tools` command helps you inspect and debug your MCP tools:
 
@@ -269,13 +349,13 @@ composer install
 
 3. Make your chages
 
-3. Fix the code style and run PHPStan
+4. Fix the code style and run PHPStan
 ```bash
 composer fix-cs
 composer phpstan
 ```
 
-4. Run the tests
+5. Run the tests
 ```bash
 composer test
 ```
