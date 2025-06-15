@@ -11,6 +11,12 @@ use OpenApi\Generator;
 use ReflectionClass;
 use ReflectionProperty;
 
+/**
+ * Extracts schema information from a class using OpenAPI attributes.
+ *
+ * This service scans the public properties of a class for OpenAPI attributes
+ * and constructs an array representation of the schema.
+ */
 class SchemaExtractor
 {
     /**

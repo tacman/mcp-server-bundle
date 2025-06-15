@@ -53,6 +53,9 @@
         ],
         "phpstan": [
             "phpstan analyse -c phpstan.neon --memory-limit=-1"
+        ],
+        "serve": [
+            "php -S localhost:8888 tests/TestApp/public/index.php"
         ]
     },
     "config": {

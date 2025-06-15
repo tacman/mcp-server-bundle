@@ -264,7 +264,12 @@ class EntrypointControllerTest extends WebTestCase
                 'jsonrpc' => '2.0',
                 'id' => null,
                 'result' => [
-                    'content' => 15,
+                    'content' => [
+                        [
+                            'type' => 'text',
+                            'text' => '15',
+                        ],
+                    ],
                 ],
                 'error' => null,
             ],
@@ -283,7 +288,12 @@ class EntrypointControllerTest extends WebTestCase
                 'jsonrpc' => '2.0',
                 'id' => null,
                 'result' => [
-                    'content' => 12,
+                    'content' => [
+                        [
+                            'type' => 'text',
+                            'text' => '12',
+                        ],
+                    ],
                 ],
                 'error' => null,
             ],

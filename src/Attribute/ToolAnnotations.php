@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Ecourty\McpServerBundle\Attribute;
 
 /**
+ * Tool annotations provide metadata about a tool's behavior and characteristics.
+ *
  * @see https://modelcontextprotocol.io/docs/concepts/tools#available-tool-annotations
  */
 #[\Attribute(\Attribute::TARGET_CLASS)]

@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace Ecourty\McpServerBundle\Enum;
 
+/**
+ * Enum representing error codes for the MCP server.
+ *
+ * This enum defines error codes used in the MCP server, including standard JSON-RPC 2.0 error codes
+ * and custom error codes specific to the MCP server.
+ */
 enum McpErrorCode: int
 {
     // Error codes for JSON-RPC 2.0

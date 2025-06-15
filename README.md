@@ -84,13 +84,14 @@ class CreateUserSchema
 ```
 
 - Tool class
+
 ```php
 <?php
 
 use App\Schema\CreateUserSchema; // Your input schema class
 use Ecourty\McpServerBundle\Attribute\AsTool;
 use Ecourty\McpServerBundle\Attribute\ToolAnnotations;
-use Ecourty\McpServerBundle\IO\ToolResponse;
+use Ecourty\McpServerBundle\IO\GenericToolResponse;
 
 #[AsTool(
     name: 'create_user', # Unique identifier for the tool, used by clients to call it
@@ -105,12 +106,12 @@ use Ecourty\McpServerBundle\IO\ToolResponse;
 )]
 class CreateUserTool
 {
-    public function __invoke(CreateUserSchema $createUserSchema): ToolResponse
+    public function __invoke(CreateUserSchema $createUserSchema): GenericToolResponse
     {
         // Your logic here...
         // $user = new User();
 
-        return new ToolResponse(data: $user);
+        return new GenericToolResponse(data: $user);
     }
 }
 ```
@@ -169,15 +170,32 @@ This ensures that your tool handlers always receive properly validated and sanit
 
 ### JSON-RPC Method Handlers
 
-The bundle provides a robust system for handling JSON-RPC requests.
+The bundle provides a robust system for handling JSON-RPC requests. By default, it includes three essential method handlers:
 
-Two requests handlers are bundled by default:
-- `ListToolsMethodHandler`: Lists all available tools (`tools/list`)
-- `ToolMethodHandler`: Handles tool execution requests (`tools/call`)
+#### Built-in Method Handlers
 
-#### Creating a custom Method Handler
+1. **`initialize`**
+   - Called when a client first connects to the server
+   - Returns server information and capabilities
+   - Essential for client-server handshake
 
-1. Create a new class that extends the `MethodHandlerInterface`
+2. **`tools/list`**
+   - Lists all available tools on the server
+   - Returns tool metadata including names, descriptions, and input schemas
+   - Used by clients to discover available tools
+
+3. **`tools/call`**
+   - Executes a specific tool
+   - Handles input validation and tool execution
+   - Returns the tool's response
+
+These methods are automatically registered and handled by the bundle. You don't need to implement them yourself.
+
+#### Creating Custom Method Handlers
+
+You can create your own JSON-RPC method handlers for additional functionality:
+
+1. Create a new class that implements the `MethodHandlerInterface`
 2. Use the `#[AsMethodHandler]` attribute to register your handler
 
 Example:
@@ -186,8 +204,7 @@ Example:
 <?php
 
 use Ecourty\McpServerBundle\Attribute\AsMethodHandler;
-use Ecourty\McpServerBundle\HttpFoundation\JsonRpcRequest;
-use Ecourty\McpServerBundle\Contract\MethodHandlerInterface;
+use Ecourty\McpServerBundle\MethodHandler\MethodHandlerInterface;
 
 #[AsMethodHandler(
     method: 'my_method',

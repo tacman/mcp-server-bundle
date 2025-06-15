@@ -9,6 +9,13 @@ use Ecourty\McpServerBundle\Tool\ToolDefinition;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireLocator;
 
+/**
+ * Registry for tools.
+ *
+ * This class provides a way to retrieve tools by their name, and the definitions of all tools declared within the MCP server.
+ *
+ * @see ToolPass
+ */
 class ToolRegistry
 {
     /** @var array<string, ToolDefinition> */

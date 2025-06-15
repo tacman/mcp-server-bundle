@@ -6,16 +6,28 @@ namespace Ecourty\McpServerBundle\MethodHandler;
 
 use Ecourty\McpServerBundle\Attribute\AsMethodHandler;
 use Ecourty\McpServerBundle\Contract\MethodHandlerInterface;
+use Ecourty\McpServerBundle\Event\ToolCallEvent;
+use Ecourty\McpServerBundle\Event\ToolCallExceptionEvent;
+use Ecourty\McpServerBundle\Event\ToolResultEvent;
 use Ecourty\McpServerBundle\Exception\ToolCallException;
 use Ecourty\McpServerBundle\HttpFoundation\JsonRpcRequest;
-use Ecourty\McpServerBundle\IO\ToolResponse;
+use Ecourty\McpServerBundle\IO\ToolResult;
 use Ecourty\McpServerBundle\Service\InputSanitizer;
 use Ecourty\McpServerBundle\Service\ToolRegistry;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+/**
+ * Handles the 'tools/call' method in the MCP server.
+ *
+ * This method is used to invoke a tool with the specified name and arguments.
+ * It validates the input against the tool's input schema and returns the tool's response.
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-03-26/server/tools#calling-tools
+ */
 #[AsMethodHandler(methodName: 'tools/call')]
 class ToolsCallMethodHandler implements MethodHandlerInterface
 {
@@ -24,6 +36,7 @@ class ToolsCallMethodHandler implements MethodHandlerInterface
         private readonly SerializerInterface $serializer,
         private readonly ValidatorInterface $validator,
         private readonly InputSanitizer $inputSanitizer,
+        private readonly ?EventDispatcherInterface $eventDispatcher = null,
     ) {
     }
 
@@ -78,8 +91,34 @@ class ToolsCallMethodHandler implements MethodHandlerInterface
                 throw new \LogicException(\sprintf('Tool "%s" does not implement __invoke method.', $toolName));
             }
 
-            $toolResponse = $tool->__invoke($inputModel);
+            if ($this->eventDispatcher !== null) {
+                $event = new ToolCallEvent(toolName: $toolName, payload: $inputModel);
+
+                $this->eventDispatcher->dispatch($event);
+            }
+
+            $toolResult = $tool->__invoke($inputModel);
+
+            if ($toolResult instanceof ToolResult === false) {
+                throw new \LogicException(\sprintf(
+                    'Tool "%s" did not return an instance of %s.',
+                    $toolName,
+                    ToolResult::class,
+                ));
+            }
+
+            if ($this->eventDispatcher !== null) {
+                $event = new ToolResultEvent(toolName: $toolName, payload: $inputModel, result: $toolResult);
+
+                $this->eventDispatcher->dispatch($event);
+            }
         } catch (\Throwable $exception) {
+            if ($this->eventDispatcher !== null) {
+                $event = new ToolCallExceptionEvent(toolName: $toolName, payload: $inputModel ?? null, exception: $exception);
+
+                $this->eventDispatcher->dispatch($event);
+            }
+
             throw new ToolCallException(
                 message: 'An error occurred while handling a tool call.',
                 code: Response::HTTP_INTERNAL_SERVER_ERROR,
@@ -87,20 +126,7 @@ class ToolsCallMethodHandler implements MethodHandlerInterface
             );
         }
 
-        return $this->buildResponse($toolResponse);
-    }
-
-    private function buildResponse(ToolResponse $toolResponse): array
-    {
-        $response = [];
-
-        if ($toolResponse->isError === true) {
-            $response['isError'] = true;
-        }
-
-        $response['content'] = $toolResponse->content;
-
-        return $response;
+        return $toolResult->toArray();
     }
 
     private function buildValidationErrorResponse(array $errors): array

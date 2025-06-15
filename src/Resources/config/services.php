@@ -18,6 +18,7 @@ return static function (ContainerConfigurator $container) {
             __DIR__ . '/../../Attribute',
             __DIR__ . '/../../IO',
             __DIR__ . '/../../Enum',
+            __DIR__ . '/../../Event',
             __DIR__ . '/../../Exception',
             __DIR__ . '/../../HttpFoundation',
             __DIR__ . '/../../Resources',

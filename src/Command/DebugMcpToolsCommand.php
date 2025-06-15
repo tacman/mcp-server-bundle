@@ -13,6 +13,13 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+/**
+ * Command to display information about MCP tools.
+ *
+ * This command allows users to view details about specific MCP tools or all available tools.
+ * It provides a table format for easy readability of tool attributes such as name, description,
+ * input schema, and various annotations.
+ */
 #[AsCommand(
     name: 'debug:mcp-tools',
     description: 'Display current MCP tools',

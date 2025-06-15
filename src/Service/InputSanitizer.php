@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace Ecourty\McpServerBundle\Service;
 
+/**
+ * InputSanitizer is a service that sanitizes input data to prevent injection attacks.
+ *
+ * It recursively sanitizes arrays and objects, ensuring that all string values are cleaned.
+ * The maximum recursion depth can be configured to prevent excessive nesting.
+ */
 class InputSanitizer
 {
     private const int MAX_DEPTH = 512;

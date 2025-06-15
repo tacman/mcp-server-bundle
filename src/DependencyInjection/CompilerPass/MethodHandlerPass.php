@@ -9,6 +9,11 @@ use Ecourty\McpServerBundle\Contract\MethodHandlerInterface;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+/**
+ * MethodHandlerPass is a compiler pass that processes JSON-RPC method handlers.
+ *
+ * It validates the class, checks for the AsMethodHandler attribute, and adds the method handler tag.
+ */
 class MethodHandlerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void

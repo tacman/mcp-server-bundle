@@ -18,6 +18,11 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
+/**
+ * Handles exceptions thrown during the request handling process.
+ *
+ * It converts exceptions into JSON-RPC error responses.
+ */
 #[AsEventListener(event: KernelEvents::EXCEPTION, method: 'onKernelException')]
 class ExceptionListener
 {
@@ -66,7 +71,7 @@ class ExceptionListener
         return new JsonRpcResponse(
             id: $jsonRpcRequestId,
             result: null,
-            error: new JsonRpcError(code: $errorCode->value, message: $errorCode->getMessage()),
+            error: new JsonRpcError(code: $errorCode, message: $errorCode->getMessage()),
         );
     }
 }

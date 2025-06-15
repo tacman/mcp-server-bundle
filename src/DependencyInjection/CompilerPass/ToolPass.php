@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace Ecourty\McpServerBundle\DependencyInjection\CompilerPass;
 
 use Ecourty\McpServerBundle\Attribute\AsTool;
-use Ecourty\McpServerBundle\IO\ToolResponse;
+use Ecourty\McpServerBundle\IO\ToolResult;
 use Ecourty\McpServerBundle\Service\SchemaExtractor;
 use Ecourty\McpServerBundle\Service\ToolRegistry;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+/**
+ * ToolPass is a compiler pass that processes MCP server tools.
+ *
+ * It validates the class, method signatures, and extracts tool metadata.
+ */
 class ToolPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
@@ -72,11 +77,11 @@ class ToolPass implements CompilerPassInterface
             }
 
             $returnType = $refClass->getMethod('__invoke')->getReturnType();
-            if ($returnType?->getName() !== ToolResponse::class) { // @phpstan-ignore method.notFound
+            if ($returnType?->getName() !== ToolResult::class) { // @phpstan-ignore method.notFound
                 throw new \LogicException(\sprintf(
                     'The __invoke method in class "%s" must return an instance of %s.',
                     $class,
-                    ToolResponse::class,
+                    ToolResult::class,
                 ));
             }
 

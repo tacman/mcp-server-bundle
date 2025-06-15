@@ -6,7 +6,8 @@ namespace Ecourty\McpServerBundle\TestApp\Tool;
 
 use Ecourty\McpServerBundle\Attribute\AsTool;
 use Ecourty\McpServerBundle\Attribute\ToolAnnotations;
-use Ecourty\McpServerBundle\IO\ToolResponse;
+use Ecourty\McpServerBundle\IO\TextToolResult;
+use Ecourty\McpServerBundle\IO\ToolResult;
 use Ecourty\McpServerBundle\TestApp\Model\MultiplyNumbers;
 
 #[AsTool(
@@ -22,10 +23,10 @@ use Ecourty\McpServerBundle\TestApp\Model\MultiplyNumbers;
 )]
 class MultiplyNumbersTool
 {
-    public function __invoke(MultiplyNumbers $data): ToolResponse
+    public function __invoke(MultiplyNumbers $data): ToolResult
     {
         $sum = $data->number1 * $data->number2;
 
-        return new ToolResponse(content: $sum);
+        return new ToolResult(elements: [new TextToolResult(content: (string) $sum)]);
     }
 }

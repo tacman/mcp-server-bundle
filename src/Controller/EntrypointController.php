@@ -10,12 +10,17 @@ use Ecourty\McpServerBundle\HttpFoundation\JsonRpcRequest;
 use Ecourty\McpServerBundle\HttpFoundation\JsonRpcResponse;
 use Ecourty\McpServerBundle\Service\MethodHandlerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * This controller handles incoming JSON-RPC requests.
+ *
+ * It maps the request payload to a JsonRpcRequest object, retrieves the appropriate
+ * method handler from the registry, and returns a JsonRpcResponse.
+ */
 #[Route(path: '/', name: 'mcp_server_')]
 class EntrypointController extends AbstractController
 {
@@ -43,13 +48,10 @@ class EntrypointController extends AbstractController
             throw new RequestHandlingException($exception);
         }
 
-        return new JsonResponse(
-            data: new JsonRpcResponse(
-                id: $jsonRpcRequest->id,
-                result: $response,
-                error: null,
-            ),
-            status: Response::HTTP_OK,
-        );
+        return $this->json(new JsonRpcResponse(
+            id: $jsonRpcRequest->id,
+            result: $response,
+            error: null,
+        ));
     }
 }

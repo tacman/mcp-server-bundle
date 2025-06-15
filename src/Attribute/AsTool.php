@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace Ecourty\McpServerBundle\Attribute;
 
+/**
+ * This attribute is used to mark a class as a tool for the MCP Server.
+ *
+ * Tools are used to perform specific actions or provide functionalities that can be invoked by clients.
+ * The tool's name and description are used to identify and describe the tool's purpose.
+ */
 #[\Attribute(\Attribute::TARGET_CLASS)]
 class AsTool
 {

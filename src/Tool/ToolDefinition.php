@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Ecourty\McpServerBundle\Tool;
 
+use Ecourty\McpServerBundle\DependencyInjection\CompilerPass\ToolPass;
 use Symfony\Component\Serializer\Attribute\Ignore;
 
 /**
+ * Represents a tool definition.
+ *
+ * @see ToolPass
  * @internal
  */
 class ToolDefinition

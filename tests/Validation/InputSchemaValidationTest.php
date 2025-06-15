@@ -70,7 +70,10 @@ class InputSchemaValidationTest extends WebTestCase
             'result' => [
                 'isError' => true,
                 'content' => [
-                    'error' => 'Simulated error for testing.',
+                    [
+                        'type' => 'text',
+                        'text' => 'Simulated error for testing.',
+                    ],
                 ],
             ],
             'error' => null,

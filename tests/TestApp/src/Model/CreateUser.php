@@ -8,7 +8,7 @@ use OpenApi\Attributes as OA;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[OA\Schema(required: ['emailAddress', 'username'])]
-class CreateUserSchema
+class CreateUser
 {
     #[Assert\Email]
     #[Assert\NotBlank]

@@ -5,9 +5,18 @@ declare(strict_types=1);
 namespace Ecourty\McpServerBundle\Service;
 
 use Ecourty\McpServerBundle\Contract\MethodHandlerInterface;
+use Ecourty\McpServerBundle\DependencyInjection\CompilerPass\MethodHandlerPass;
 use Symfony\Component\DependencyInjection\Attribute\AutowireLocator;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
+/**
+ * Registry for method handlers.
+ *
+ * This class provides a way to retrieve method handlers by their name.
+ * It uses a service locator to manage the method handler instances.
+ *
+ * @see MethodHandlerPass
+ */
 class MethodHandlerRegistry
 {
     /**
