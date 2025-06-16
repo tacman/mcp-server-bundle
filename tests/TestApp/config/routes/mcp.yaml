@@ -1,2 +1,3 @@
 mcp_controller:
-  resource: '@McpServerBundle/Controller'
+  path: /mcp
+  controller: mcp_server.entrypoint_controller

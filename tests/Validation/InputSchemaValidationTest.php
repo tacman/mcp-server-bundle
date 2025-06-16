@@ -16,7 +16,7 @@ class InputSchemaValidationTest extends WebTestCase
     {
         $response = $this->request(
             method: Request::METHOD_POST,
-            url: '/',
+            url: '/mcp',
             body: [
                 'method' => 'tools/call',
                 'params' => [
@@ -50,7 +50,7 @@ class InputSchemaValidationTest extends WebTestCase
     {
         $response = $this->request(
             method: Request::METHOD_POST,
-            url: '/',
+            url: '/mcp',
             body: [
                 'method' => 'tools/call',
                 'params' => [

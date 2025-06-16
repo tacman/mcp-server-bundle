@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Ecourty\McpServerBundle\Controller\EntrypointController;
+
 return static function (ContainerConfigurator $container) {
     $services = $container->services();
     $services
@@ -25,5 +27,11 @@ return static function (ContainerConfigurator $container) {
             __DIR__ . '/../../Tool',
             __DIR__ . '/../../McpServerBundle.php',
         ])
+        ->public();
+
+    $services
+        ->set('mcp_server.entrypoint_controller', EntrypointController::class)
+        ->autoconfigure()
+        ->autowire()
         ->public();
 };

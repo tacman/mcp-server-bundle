@@ -51,7 +51,8 @@ return [
 3. Configure the routes in `config/routes/mcp.yaml`:
 ```yaml
 mcp_controller:
-  resource: '@McpServerBundle/Controller'
+  path: /mcp
+  controller: mcp_server.entrypoint_controller
 ```
 
 ## Tools

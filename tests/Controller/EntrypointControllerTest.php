@@ -21,7 +21,7 @@ class EntrypointControllerTest extends WebTestCase
     {
         $response = $this->request(
             method: Request::METHOD_POST,
-            url: '/',
+            url: '/mcp',
         );
 
         $responseContent = json_decode((string) $response->getContent(), true);
@@ -48,7 +48,7 @@ class EntrypointControllerTest extends WebTestCase
 
         $response = $this->request(
             method: Request::METHOD_POST,
-            url: '/',
+            url: '/mcp',
             body: [
                 'id' => $requestId,
                 'method' => 'tools/list',
@@ -172,7 +172,7 @@ class EntrypointControllerTest extends WebTestCase
     {
         $response = $this->request(
             method: Request::METHOD_POST,
-            url: '/',
+            url: '/mcp',
             body: [
                 'method' => 'tools/non_existing_tool',
                 'params' => [],
@@ -202,7 +202,7 @@ class EntrypointControllerTest extends WebTestCase
     {
         $response = $this->request(
             method: Request::METHOD_POST,
-            url: '/',
+            url: '/mcp',
             body: [
                 'method' => 'tools/call',
                 'params' => [
@@ -236,7 +236,7 @@ class EntrypointControllerTest extends WebTestCase
     {
         $response = $this->request(
             method: Request::METHOD_POST,
-            url: '/',
+            url: '/mcp',
             body: [
                 'method' => $method,
                 'params' => $params,

@@ -21,7 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * It maps the request payload to a JsonRpcRequest object, retrieves the appropriate
  * method handler from the registry, and returns a JsonRpcResponse.
  */
-#[Route(path: '/', name: 'mcp_server_')]
+#[Route(name: 'mcp_server_')]
 class EntrypointController extends AbstractController
 {
     public function __construct(
@@ -30,7 +30,7 @@ class EntrypointController extends AbstractController
     }
 
     #[Route(path: '', name: 'entrypoint', methods: [Request::METHOD_POST])]
-    public function entrypointAction(
+    public function __invoke(
         #[MapRequestPayload] JsonRpcRequest $jsonRpcRequest,
         Request $request,
     ): Response {
