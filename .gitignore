@@ -4,6 +4,7 @@
 
 # Dependencies
 vendor
+composer.lock
 
 # Test-related data
 .phpunit.result.cache
