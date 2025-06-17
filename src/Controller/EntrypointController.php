@@ -7,8 +7,8 @@ namespace Ecourty\McpServerBundle\Controller;
 use Ecourty\McpServerBundle\Exception\MethodHandlerNotFoundException;
 use Ecourty\McpServerBundle\Exception\RequestHandlingException;
 use Ecourty\McpServerBundle\HttpFoundation\JsonRpcRequest;
-use Ecourty\McpServerBundle\HttpFoundation\JsonRpcResponse;
 use Ecourty\McpServerBundle\Service\MethodHandlerRegistry;
+use Ecourty\McpServerBundle\Service\ResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,6 +26,7 @@ class EntrypointController extends AbstractController
 {
     public function __construct(
         private readonly MethodHandlerRegistry $methodHandlerRegistry,
+        private readonly ResponseFactory $responseFactory,
     ) {
     }
 
@@ -48,10 +49,9 @@ class EntrypointController extends AbstractController
             throw new RequestHandlingException($exception);
         }
 
-        return $this->json(new JsonRpcResponse(
+        return $this->responseFactory->success(
             id: $jsonRpcRequest->id,
             result: $response,
-            error: null,
-        ));
+        );
     }
 }
