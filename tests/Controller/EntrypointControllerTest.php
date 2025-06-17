@@ -29,12 +29,9 @@ class EntrypointControllerTest extends WebTestCase
 
         $this->assertSame([
             'jsonrpc' => '2.0',
-            'id' => null,
-            'result' => null,
             'error' => [
                 'code' => McpErrorCode::PARSE_ERROR->value,
                 'message' => McpErrorCode::PARSE_ERROR->getMessage(),
-                'data' => null,
             ],
         ], $responseContent);
     }
@@ -45,6 +42,8 @@ class EntrypointControllerTest extends WebTestCase
             method: Request::METHOD_POST,
             url: '/mcp',
             body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
                 'method' => 'initialize',
                 'params' => [],
             ],
@@ -54,6 +53,7 @@ class EntrypointControllerTest extends WebTestCase
         $this->assertNotFalse($responseContent);
 
         $this->assertArrayHasKey('result', $responseContent);
+        $this->assertArrayNotHasKey('error', $responseContent);
 
         $resultContent = $responseContent['result'];
 
@@ -82,6 +82,7 @@ class EntrypointControllerTest extends WebTestCase
             method: Request::METHOD_POST,
             url: '/mcp',
             body: [
+                'jsonrpc' => '2.0',
                 'id' => $requestId,
                 'method' => 'tools/list',
                 'params' => [],
@@ -206,6 +207,8 @@ class EntrypointControllerTest extends WebTestCase
             method: Request::METHOD_POST,
             url: '/mcp',
             body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
                 'method' => 'tools/non_existing_tool',
                 'params' => [],
             ],
@@ -216,12 +219,10 @@ class EntrypointControllerTest extends WebTestCase
 
         $this->assertSame([
             'jsonrpc' => '2.0',
-            'id' => null,
-            'result' => null,
+            'id' => 1,
             'error' => [
                 'code' => McpErrorCode::TOOL_NOT_FOUND->value,
                 'message' => McpErrorCode::TOOL_NOT_FOUND->getMessage(),
-                'data' => null,
             ],
         ], $responseContent);
     }
@@ -236,6 +237,8 @@ class EntrypointControllerTest extends WebTestCase
             method: Request::METHOD_POST,
             url: '/mcp',
             body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
                 'method' => 'tools/call',
                 'params' => [
                     'name' => 'sum_numbers',
@@ -249,12 +252,10 @@ class EntrypointControllerTest extends WebTestCase
 
         $this->assertSame([
             'jsonrpc' => '2.0',
-            'id' => null,
-            'result' => null,
+            'id' => 1,
             'error' => [
                 'code' => McpErrorCode::INTERNAL_ERROR->value,
                 'message' => McpErrorCode::INTERNAL_ERROR->getMessage(),
-                'data' => null,
             ],
         ], $responseContent);
     }
@@ -270,6 +271,8 @@ class EntrypointControllerTest extends WebTestCase
             method: Request::METHOD_POST,
             url: '/mcp',
             body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
                 'method' => $method,
                 'params' => $params,
             ],
@@ -294,7 +297,7 @@ class EntrypointControllerTest extends WebTestCase
             ],
             'expectedResponse' => [
                 'jsonrpc' => '2.0',
-                'id' => null,
+                'id' => 1,
                 'result' => [
                     'content' => [
                         [
@@ -303,7 +306,6 @@ class EntrypointControllerTest extends WebTestCase
                         ],
                     ],
                 ],
-                'error' => null,
             ],
         ];
 
@@ -318,7 +320,7 @@ class EntrypointControllerTest extends WebTestCase
             ],
             'expectedResponse' => [
                 'jsonrpc' => '2.0',
-                'id' => null,
+                'id' => 1,
                 'result' => [
                     'content' => [
                         [
@@ -327,7 +329,6 @@ class EntrypointControllerTest extends WebTestCase
                         ],
                     ],
                 ],
-                'error' => null,
             ],
         ];
     }

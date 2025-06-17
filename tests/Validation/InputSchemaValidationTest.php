@@ -18,6 +18,8 @@ class InputSchemaValidationTest extends WebTestCase
             method: Request::METHOD_POST,
             url: '/mcp',
             body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
                 'method' => 'tools/call',
                 'params' => [
                     'name' => 'create_user',
@@ -32,7 +34,7 @@ class InputSchemaValidationTest extends WebTestCase
         $parsedResponse = json_decode((string) $response->getContent(), true);
         $this->assertSame([
             'jsonrpc' => '2.0',
-            'id' => null,
+            'id' => 1,
             'result' => [
                 'isError' => true,
                 'content' => [
@@ -42,7 +44,6 @@ class InputSchemaValidationTest extends WebTestCase
                     ],
                 ],
             ],
-            'error' => null,
         ], $parsedResponse);
     }
 
@@ -52,6 +53,8 @@ class InputSchemaValidationTest extends WebTestCase
             method: Request::METHOD_POST,
             url: '/mcp',
             body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
                 'method' => 'tools/call',
                 'params' => [
                     'name' => 'create_user',
@@ -66,7 +69,7 @@ class InputSchemaValidationTest extends WebTestCase
         $parsedResponse = json_decode((string) $response->getContent(), true);
         $this->assertSame([
             'jsonrpc' => '2.0',
-            'id' => null,
+            'id' => 1,
             'result' => [
                 'isError' => true,
                 'content' => [
@@ -76,7 +79,6 @@ class InputSchemaValidationTest extends WebTestCase
                     ],
                 ],
             ],
-            'error' => null,
         ], $parsedResponse);
     }
 }
