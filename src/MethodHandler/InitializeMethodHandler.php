@@ -19,18 +19,18 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 #[AsMethodHandler(methodName: 'initialize')]
 class InitializeMethodHandler implements MethodHandlerInterface
 {
-    private const string PROTOCOL_VERSION = '2025-03-26';
+    public const string PROTOCOL_VERSION = '2025-03-26';
 
     public function __construct(
+        private readonly string $serverName,
+        private readonly string $serverVersion,
         private readonly ?EventDispatcherInterface $eventDispatcher = null,
     ) {
     }
 
     public function handle(JsonRpcRequest $request): array
     {
-        if ($this->eventDispatcher !== null) {
-            $this->eventDispatcher->dispatch(new InitializeEvent($request));
-        }
+        $this->eventDispatcher?->dispatch(new InitializeEvent($request));
 
         return [
             'protocolVersion' => self::PROTOCOL_VERSION,
@@ -41,8 +41,8 @@ class InitializeMethodHandler implements MethodHandlerInterface
                 'tools' => [],
             ],
             'serverInfo' => [
-                'name' => 'MCP Server',
-                'version' => '1.0.0',
+                'name' => $this->serverName,
+                'version' => $this->serverVersion,
             ],
         ];
     }
