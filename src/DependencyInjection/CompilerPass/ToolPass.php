@@ -26,7 +26,11 @@ class ToolPass implements CompilerPassInterface
         foreach ($container->getDefinitions() as $definition) {
             $class = $definition->getClass();
 
-            if ($class === null || class_exists($class) === false) {
+            try {
+                if ($class === null || class_exists($class) === false) {
+                    continue;
+                }
+            } catch (\Throwable) {
                 continue;
             }
 
