@@ -13,6 +13,8 @@ _Read the [official MCP specification](https://modelcontextprotocol.io/docs/conc
 ## Table of Contents
 
 - [Getting Started](#getting-started)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
 - [Tools](#tools)
   - [Creating Tools](#creating-tools)
   - [Tool Events](#tool-events)
@@ -53,6 +55,17 @@ return [
 mcp_controller:
   path: /mcp
   controller: mcp_server.entrypoint_controller
+```
+
+### Configuration
+
+You can customize the MCP Server Bundle configuration in `config/packages/mcp_server.yaml`:
+
+```yaml
+mcp_server:
+  server:
+    name: 'My MCP Server' # The name of your MCP server, used in the initialization response
+    version: '1.0.0' # The version of your MCP server, used in the initialization response
 ```
 
 ## Tools

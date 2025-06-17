@@ -1,0 +1,4 @@
+mcp_server:
+  server:
+    name: My Test MCP Server
+    version: 1.0.1

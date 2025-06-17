@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ecourty\McpServerBundle\Tests\Controller;
 
 use Ecourty\McpServerBundle\Enum\McpErrorCode;
+use Ecourty\McpServerBundle\MethodHandler\InitializeMethodHandler;
 use Ecourty\McpServerBundle\Tests\WebTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,6 +37,37 @@ class EntrypointControllerTest extends WebTestCase
                 'data' => null,
             ],
         ], $responseContent);
+    }
+
+    public function testInitialize(): void
+    {
+        $response = $this->request(
+            method: Request::METHOD_POST,
+            url: '/mcp',
+            body: [
+                'method' => 'initialize',
+                'params' => [],
+            ],
+        );
+
+        $responseContent = json_decode((string) $response->getContent(), true);
+        $this->assertNotFalse($responseContent);
+
+        $this->assertArrayHasKey('result', $responseContent);
+
+        $resultContent = $responseContent['result'];
+
+        $this->assertArrayHasKey('protocolVersion', $resultContent);
+        $this->assertSame(InitializeMethodHandler::PROTOCOL_VERSION, $resultContent['protocolVersion']);
+
+        $this->assertArrayHasKey('serverInfo', $resultContent);
+        $serverInfo = $resultContent['serverInfo'];
+
+        $this->assertArrayHasKey('name', $serverInfo);
+        $this->assertSame('My Test MCP Server', $serverInfo['name']);
+
+        $this->assertArrayHasKey('version', $serverInfo);
+        $this->assertSame('1.0.1', $serverInfo['version']);
     }
 
     /**
