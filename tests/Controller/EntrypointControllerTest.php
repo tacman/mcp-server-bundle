@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ecourty\McpServerBundle\Tests\Controller;
 
 use Ecourty\McpServerBundle\Enum\McpErrorCode;
+use Ecourty\McpServerBundle\Enum\PromptRole;
 use Ecourty\McpServerBundle\MethodHandler\InitializeMethodHandler;
 use Ecourty\McpServerBundle\Tests\WebTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -331,5 +332,126 @@ class EntrypointControllerTest extends WebTestCase
                 ],
             ],
         ];
+    }
+
+    public function testPromptList(): void
+    {
+        $response = $this->request(
+            method: Request::METHOD_POST,
+            url: '/mcp',
+            body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'prompts/list',
+                'params' => [],
+            ],
+        );
+
+        $responseContent = json_decode((string) $response->getContent(), true);
+        $this->assertNotFalse($responseContent);
+
+        $this->assertSame('2.0', $responseContent['jsonrpc']);
+        $this->assertSame(1, $responseContent['id']);
+        $this->assertArrayHasKey('result', $responseContent);
+
+        $resultContent = $responseContent['result'];
+
+        $this->assertArrayHasKey('prompts', $resultContent);
+        $this->assertCount(2, $resultContent['prompts']);
+
+        $prompts = $resultContent['prompts'];
+        $this->assertSame('generate-git-commit-message', $prompts[0]['name']);
+        $this->assertSame('Generate a git commit message based on the provided changes.', $prompts[0]['description']);
+        $this->assertArrayHasKey('arguments', $prompts[0]);
+        $this->assertCount(2, $prompts[0]['arguments']);
+
+        $this->assertSame('changes', $prompts[0]['arguments'][0]['name']);
+        $this->assertSame('The changed made in the codebase', $prompts[0]['arguments'][0]['description']);
+        $this->assertSame('scope', $prompts[0]['arguments'][1]['name']);
+        $this->assertSame('The scope of the changes, e.g., feature, bugfix, etc.', $prompts[0]['arguments'][1]['description']);
+
+        $this->assertSame('greeting', $prompts[1]['name']);
+        $this->assertArrayNotHasKey('description', $prompts[1]);
+        $this->assertArrayHasKey('arguments', $prompts[1]);
+
+        $this->assertCount(1, $prompts[1]['arguments']);
+        $this->assertSame('name', $prompts[1]['arguments'][0]['name']);
+        $this->assertSame('The name of the person to greet.', $prompts[1]['arguments'][0]['description']);
+        $this->assertFalse($prompts[1]['arguments'][0]['required']);
+    }
+
+    public function testPromptGet(): void
+    {
+        $changes = 'Fixed a bug in the user authentication flow';
+        $scope = 'bugfix';
+
+        $response = $this->request(
+            method: Request::METHOD_POST,
+            url: '/mcp',
+            body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'prompts/get',
+                'params' => [
+                    'name' => 'generate-git-commit-message',
+                    'arguments' => [
+                        'changes' => $changes,
+                        'scope' => $scope,
+                    ],
+                ],
+            ],
+        );
+
+        $responseContent = json_decode((string) $response->getContent(), true);
+        $this->assertNotFalse($responseContent);
+
+        $this->assertSame('2.0', $responseContent['jsonrpc']);
+        $this->assertSame(1, $responseContent['id']);
+        $this->assertArrayHasKey('result', $responseContent);
+
+        $resultContent = $responseContent['result'];
+
+        // Check if the result contains the expected prompt structure
+        $this->assertSame('A concise git commit message prompt', $resultContent['description']);
+        $this->assertArrayHasKey('messages', $resultContent);
+        $this->assertCount(1, $resultContent['messages']);
+
+        // Check the first message in the result
+        $message = $resultContent['messages'][0];
+        $this->assertSame(PromptRole::USER->value, $message['role']);
+        $this->assertArrayHasKey('content', $message);
+        $content = $message['content'];
+
+        // Check the content type and text
+        $this->assertSame('text', $content['type']);
+        $this->assertArrayHasKey('text', $content);
+
+        // Verify that the content text contains the changes and scope
+        $this->assertStringContainsString($changes, $content['text']);
+        $this->assertStringContainsString($scope, $content['text']);
+    }
+
+    public function testPromptGetWithNonRequiredParameterLeftEmpty(): void
+    {
+        $response = $this->request(
+            method: Request::METHOD_POST,
+            url: '/mcp',
+            body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'prompts/get',
+                'params' => [
+                    'name' => 'greeting',
+                ],
+            ],
+        );
+
+        $responseContent = json_decode((string) $response->getContent(), true);
+        $this->assertNotFalse($responseContent);
+
+        $this->assertSame('2.0', $responseContent['jsonrpc']);
+        $this->assertSame(1, $responseContent['id']);
+        $this->assertArrayHasKey('result', $responseContent);
+        $this->assertArrayNotHasKey('error', $responseContent);
     }
 }

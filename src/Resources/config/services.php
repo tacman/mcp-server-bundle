@@ -23,6 +23,7 @@ return static function (ContainerConfigurator $container) {
             __DIR__ . '/../../Event',
             __DIR__ . '/../../Exception',
             __DIR__ . '/../../HttpFoundation',
+            __DIR__ . '/../../Prompt',
             __DIR__ . '/../../Resources',
             __DIR__ . '/../../Tool',
             __DIR__ . '/../../McpServerBundle.php',

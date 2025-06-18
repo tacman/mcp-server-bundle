@@ -37,15 +37,9 @@ class ExceptionListener
         $event->allowCustomResponseCode();
 
         $response = match (true) {
-            $exception instanceof UnprocessableEntityHttpException =>
-                $this->responseFactory->error($jsonRpcRequestId, McpErrorCode::PARSE_ERROR),
-
-            $exception instanceof MethodHandlerNotFoundException =>
-                $this->responseFactory->error($jsonRpcRequestId, McpErrorCode::TOOL_NOT_FOUND),
-
-            $exception instanceof RequestHandlingException =>
-                $this->responseFactory->error($jsonRpcRequestId, McpErrorCode::INTERNAL_ERROR),
-
+            $exception instanceof UnprocessableEntityHttpException => $this->responseFactory->error($jsonRpcRequestId, McpErrorCode::PARSE_ERROR),
+            $exception instanceof MethodHandlerNotFoundException => $this->responseFactory->error($jsonRpcRequestId, McpErrorCode::TOOL_NOT_FOUND),
+            $exception instanceof RequestHandlingException => $this->responseFactory->error($jsonRpcRequestId, McpErrorCode::INTERNAL_ERROR),
             default => null,
         };
 

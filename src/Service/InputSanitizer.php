@@ -17,7 +17,7 @@ class InputSanitizer
     public function sanitize(mixed $value, int $maxDepth = self::MAX_DEPTH): mixed
     {
         try {
-            return $this->sanitizeValue(value: $value, depth: 0, maxDepth :$maxDepth);
+            return $this->sanitizeValue(value: $value, depth: 0, maxDepth: $maxDepth);
         } catch (\OverflowException) {
             return null;
         }

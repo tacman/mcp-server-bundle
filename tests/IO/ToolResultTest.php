@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass ToolResult
+ * @coversDefaultClass \ToolResult
  */
 class ToolResultTest extends TestCase
 {

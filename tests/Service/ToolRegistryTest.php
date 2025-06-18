@@ -47,4 +47,54 @@ class ToolRegistryTest extends KernelTestCase
             ['create_user', CreateUserTool::class],
         ];
     }
+
+    #[DataProvider('provideToolAndDefinition')]
+    public function testGetToolDefinition(string $toolName, string $expectedDescription, array $expectedSchema): void
+    {
+        $toolDefinition = $this->registry->getToolDefinition($toolName);
+
+        $this->assertNotNull($toolDefinition);
+        $this->assertSame($expectedDescription, $toolDefinition->description);
+        $this->assertSame($expectedSchema, $toolDefinition->inputSchema);
+    }
+
+    public static function provideToolAndDefinition(): array
+    {
+        return [
+            [
+                'toolName' => 'sum_numbers',
+                'expectedDescription' => 'Calculates the sum of two numbers',
+                'expectedSchema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'number1' => ['description' => 'The first number to sum', 'type' => 'number', 'nullable' => false],
+                        'number2' => ['description' => 'The second number to sum', 'type' => 'number', 'nullable' => false],
+                    ],
+                ],
+            ],
+            [
+                'toolName' => 'multiply_numbers',
+                'expectedDescription' => 'Calculates the product of two numbers',
+                'expectedSchema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'number1' => ['description' => 'The first number to multiply', 'type' => 'number', 'nullable' => false],
+                        'number2' => ['description' => 'The second number to multiply', 'type' => 'number', 'nullable' => false],
+                    ],
+                ],
+            ],
+            [
+                'toolName' => 'create_user',
+                'expectedDescription' => 'Creates a user based on the provided data',
+                'expectedSchema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'emailAddress' => ['description' => 'The email address of the user', 'type' => 'string', 'maxLength' => 255, 'minLength' => 5, 'nullable' => false],
+                        'username' => ['description' => 'The username of the user', 'type' => 'string', 'maxLength' => 50, 'minLength' => 3, 'nullable' => false],
+                    ],
+                    'required' => ['emailAddress', 'username'],
+                ],
+            ],
+        ];
+    }
 }
