@@ -8,6 +8,9 @@ use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
+/**
+ * Configuration class for the MCP Server bundle.
+ */
 class Configuration implements ConfigurationInterface
 {
     private const string DEFAULT_NAME = 'MCP Server';

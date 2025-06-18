@@ -103,7 +103,7 @@ class InputSanitizerTest extends TestCase
                         'level3' => '<script>alert("XSS")</script>',
                         'array' => ['<b>bold</b>', 123, true],
                     ],
-                    'anotherLevel2' => (object)[
+                    'anotherLevel2' => (object) [
                         'property' => '<i>italic</i> text',
                     ],
                 ],
@@ -114,7 +114,7 @@ class InputSanitizerTest extends TestCase
                         'level3' => 'alert("XSS")',
                         'array' => ['bold', 123, true],
                     ],
-                    'anotherLevel2' => (object)[
+                    'anotherLevel2' => (object) [
                         'property' => 'italic text',
                     ],
                 ],

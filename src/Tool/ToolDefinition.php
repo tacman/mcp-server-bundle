@@ -11,6 +11,7 @@ use Symfony\Component\Serializer\Attribute\Ignore;
  * Represents a tool definition.
  *
  * @see ToolPass
+ *
  * @internal
  */
 class ToolDefinition

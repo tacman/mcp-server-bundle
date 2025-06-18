@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace Ecourty\McpServerBundle;
 
 use Ecourty\McpServerBundle\DependencyInjection\CompilerPass\MethodHandlerPass;
+use Ecourty\McpServerBundle\DependencyInjection\CompilerPass\PromptPass;
 use Ecourty\McpServerBundle\DependencyInjection\CompilerPass\ToolPass;
 use Ecourty\McpServerBundle\DependencyInjection\McpServerBundleExtension;
-use Ecourty\McpServerBundle\MethodHandler\InitializeMethodHandler;
-use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
 class McpServerBundle extends AbstractBundle
@@ -32,5 +30,6 @@ class McpServerBundle extends AbstractBundle
 
         $container->addCompilerPass(new MethodHandlerPass());
         $container->addCompilerPass(new ToolPass());
+        $container->addCompilerPass(new PromptPass());
     }
 }

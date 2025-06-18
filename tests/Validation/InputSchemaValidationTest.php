@@ -7,9 +7,6 @@ namespace Ecourty\McpServerBundle\Tests\Validation;
 use Ecourty\McpServerBundle\Tests\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 
-/**
- * @coversDefaultClass
- */
 class InputSchemaValidationTest extends WebTestCase
 {
     public function testInputSchemaValidation(): void

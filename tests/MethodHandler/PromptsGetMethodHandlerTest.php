@@ -4,46 +4,40 @@ declare(strict_types=1);
 
 namespace Ecourty\McpServerBundle\Tests\MethodHandler;
 
-use Ecourty\McpServerBundle\Event\AbstractToolEvent;
-use Ecourty\McpServerBundle\Event\ToolCallEvent;
-use Ecourty\McpServerBundle\Event\ToolResultEvent;
+use Ecourty\McpServerBundle\Event\Prompt\AbstractPromptEvent;
+use Ecourty\McpServerBundle\Event\Prompt\PromptExceptionEvent;
+use Ecourty\McpServerBundle\Event\Prompt\PromptGetEvent;
+use Ecourty\McpServerBundle\Event\Prompt\PromptResultEvent;
+use Ecourty\McpServerBundle\Exception\PromptGetException;
 use Ecourty\McpServerBundle\HttpFoundation\JsonRpcRequest;
-use Ecourty\McpServerBundle\MethodHandler\ToolsCallMethodHandler;
+use Ecourty\McpServerBundle\MethodHandler\PromptsGetMethodHandler;
 use Ecourty\McpServerBundle\Service\InputSanitizer;
-use Ecourty\McpServerBundle\Service\ToolRegistry;
+use Ecourty\McpServerBundle\Service\PromptRegistry;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
- * @coversDefaultClass \Ecourty\McpServerBundle\MethodHandler\ToolsCallMethodHandler
+ * @coversDefaultClass \Ecourty\McpServerBundle\MethodHandler\PromptsGetMethodHandler
  */
-class ToolsCallMethodHandlerTest extends KernelTestCase
+class PromptsGetMethodHandlerTest extends KernelTestCase
 {
     private MockObject&EventDispatcherInterface $eventDispatcher;
 
-    private ToolsCallMethodHandler $toolsCallMethodHandler;
+    private PromptsGetMethodHandler $promptsGetMethodHandler;
 
     protected function setUp(): void
     {
         $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
 
-        /** @var ToolRegistry $toolRegistry */
-        $toolRegistry = self::getContainer()->get(ToolRegistry::class);
-        /** @var SerializerInterface $serializer */
-        $serializer = self::getContainer()->get(SerializerInterface::class);
-        /** @var ValidatorInterface $validator */
-        $validator = self::getContainer()->get(ValidatorInterface::class);
+        /** @var PromptRegistry $promptRegistry */
+        $promptRegistry = self::getContainer()->get(PromptRegistry::class);
         /** @var InputSanitizer $inputSanitizer */
         $inputSanitizer = self::getContainer()->get(InputSanitizer::class);
 
-        $this->toolsCallMethodHandler = new ToolsCallMethodHandler(
-            toolRegistry: $toolRegistry,
-            serializer: $serializer,
-            validator: $validator,
+        $this->promptsGetMethodHandler = new PromptsGetMethodHandler(
+            promptRegistry: $promptRegistry,
             inputSanitizer: $inputSanitizer,
             eventDispatcher: $this->eventDispatcher,
         );
@@ -61,7 +55,7 @@ class ToolsCallMethodHandlerTest extends KernelTestCase
         $this->eventDispatcher
             ->expects($matcher)
             ->method('dispatch')
-            ->willReturnCallback(function (AbstractToolEvent $event) use ($matcher, $events) {
+            ->willReturnCallback(function (AbstractPromptEvent $event) use ($matcher, $events) {
                 $this->assertInstanceOf($events[$matcher->numberOfInvocations() - 1], $event);
             });
 
@@ -69,7 +63,7 @@ class ToolsCallMethodHandlerTest extends KernelTestCase
             $this->expectException($willThrow);
         }
 
-        $this->toolsCallMethodHandler->handle($jsonRpcRequest);
+        $this->promptsGetMethodHandler->handle($jsonRpcRequest);
     }
 
     public static function provideEventFireTestData(): \Generator
@@ -77,18 +71,18 @@ class ToolsCallMethodHandlerTest extends KernelTestCase
         yield 'Regular result flow' => [
             'jsonRpcRequest' => new JsonRpcRequest(
                 id: 1,
-                method: 'tools/call',
+                method: 'prompts/get',
                 params: [
-                    'name' => 'sum_numbers',
+                    'name' => 'generate-git-commit-message',
                     'arguments' => [
-                        'number1' => 3,
-                        'number2' => 5,
+                        'changes' => 'changes',
+                        'scope' => 'feature',
                     ],
                 ],
             ),
             'events' => [
-                ToolCallEvent::class,
-                ToolResultEvent::class,
+                PromptGetEvent::class,
+                PromptResultEvent::class,
             ],
             'willThrow' => null,
         ];
@@ -96,28 +90,28 @@ class ToolsCallMethodHandlerTest extends KernelTestCase
         yield 'Error result flow' => [
             'jsonRpcRequest' => new JsonRpcRequest(
                 id: 1,
-                method: 'tools/call',
+                method: 'prompts/get',
                 params: [
-                    'name' => 'create_user',
+                    'name' => 'generate-git-commit-message',
                     'arguments' => [
-                        'username' => 'testIsError', // This username is expected to trigger an error
-                        'emailAddress' => 'test@mcp.com',
+                        'changes' => 'changes',
+                        'scope' => 'error', // This will trigger an error in the prompt
                     ],
                 ],
             ),
             'events' => [
-                ToolCallEvent::class,
-                ToolResultEvent::class,
+                PromptGetEvent::class,
+                PromptExceptionEvent::class,
             ],
-            'willThrow' => null,
+            'willThrow' => PromptGetException::class,
         ];
 
-        yield 'Invalid tool name' => [
+        yield 'Invalid prompt name' => [
             'jsonRpcRequest' => new JsonRpcRequest(
                 id: 1,
-                method: 'tools/call',
+                method: 'prompts/get',
                 params: [
-                    'name' => 'non_existent_tool',
+                    'name' => 'invalid-prompt-name',
                     'arguments' => [],
                 ],
             ),

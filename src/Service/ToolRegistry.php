@@ -6,8 +6,8 @@ namespace Ecourty\McpServerBundle\Service;
 
 use Ecourty\McpServerBundle\DependencyInjection\CompilerPass\ToolPass;
 use Ecourty\McpServerBundle\Tool\ToolDefinition;
-use Psr\Container\ContainerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireLocator;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 
 /**
  * Registry for tools.
@@ -21,9 +21,9 @@ class ToolRegistry
     /** @var array<string, ToolDefinition> */
     private array $toolDefinitions = [];
 
-    public function __construct(
+    public function __construct(// @phpstan-ignore missingType.generics
         #[AutowireLocator(services: 'mcp_server.tool', indexAttribute: 'name')]
-        private readonly ContainerInterface $toolLocator,
+        private readonly ServiceLocator $toolLocator,
     ) {
     }
 
@@ -69,7 +69,7 @@ class ToolRegistry
         string $inputSchemaClass,
         array $annotations,
     ): void {
-        if (isset($this->toolDefinitions[$name])) {
+        if (isset($this->toolDefinitions[$name]) === true) {
             throw new \LogicException(\sprintf('Tool with name "%s" is already registered.', $name));
         }
 
