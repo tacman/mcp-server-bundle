@@ -15,7 +15,7 @@ use Ecourty\McpServerBundle\Prompt\Argument;
 #[AsPrompt(
     name: 'greeting',
     arguments: [
-        new Argument('name', description: 'The name of the person to greet.', required: false),
+        new Argument('name', description: 'The name of the person to greet.', required: false, allowUnsafe: true),
     ],
 )]
 class GreetingPrompt

@@ -53,7 +53,7 @@ class PromptRegistry
     /**
      * @internal
      *
-     * @param array<array{name: string, description: string, required: bool}> $argumentDefinitions
+     * @param array<array{name: string, description: string, required: bool, allowUnsafe: bool}> $argumentDefinitions
      */
     public function addPromptDefinition(
         string $name,
@@ -70,6 +70,7 @@ class PromptRegistry
                 name: $argumentDefinition['name'],
                 description: $argumentDefinition['description'],
                 required: $argumentDefinition['required'],
+                allowUnsafe: $argumentDefinition['allowUnsafe'],
             );
         }
 
