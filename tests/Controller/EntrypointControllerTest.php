@@ -454,4 +454,37 @@ class EntrypointControllerTest extends WebTestCase
         $this->assertArrayHasKey('result', $responseContent);
         $this->assertArrayNotHasKey('error', $responseContent);
     }
+
+    public function testPromptGetWithUnsafeParameterAllowed(): void
+    {
+        $unsafeContent = '<script>alert("This is unsafe!");</script>';
+
+        $response = $this->request(
+            method: Request::METHOD_POST,
+            url: '/mcp',
+            body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'prompts/get',
+                'params' => [
+                    'name' => 'generate-git-commit-message',
+                    'arguments' => [
+                        'changes' => $unsafeContent,
+                        'scope' => 'feature',
+                    ],
+                ],
+            ],
+        );
+
+        $responseContent = json_decode((string) $response->getContent(), true);
+        $this->assertNotFalse($responseContent);
+
+        $this->assertSame('2.0', $responseContent['jsonrpc']);
+        $this->assertSame(1, $responseContent['id']);
+        $this->assertArrayHasKey('result', $responseContent);
+
+        // Check if the unsafe content is present in the response
+        $resultContent = $responseContent['result'];
+        $this->assertStringContainsString($unsafeContent, $resultContent['messages'][0]['content']['text']);
+    }
 }

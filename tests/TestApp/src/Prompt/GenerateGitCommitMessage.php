@@ -16,7 +16,7 @@ use Ecourty\McpServerBundle\Prompt\Argument;
     name: 'generate-git-commit-message',
     description: 'Generate a git commit message based on the provided changes.',
     arguments: [
-        new Argument(name: 'changes', description: 'The changed made in the codebase'),
+        new Argument(name: 'changes', description: 'The changed made in the codebase', allowUnsafe: true),
         new Argument(name: 'scope', description: 'The scope of the changes, e.g., feature, bugfix, etc.'),
     ],
 )]

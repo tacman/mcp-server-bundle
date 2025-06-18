@@ -62,7 +62,7 @@ class PromptRegistryTest extends KernelTestCase
                 'name' => 'generate-git-commit-message',
                 'expectedDescription' => 'Generate a git commit message based on the provided changes.',
                 'expectedArguments' => [
-                    new Argument('changes', 'The changed made in the codebase', true),
+                    new Argument('changes', 'The changed made in the codebase', true, true),
                     new Argument('scope', 'The scope of the changes, e.g., feature, bugfix, etc.', true),
                 ],
             ],

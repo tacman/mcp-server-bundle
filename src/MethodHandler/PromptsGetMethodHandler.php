@@ -17,7 +17,6 @@ use Ecourty\McpServerBundle\Prompt\PromptDefinition;
 use Ecourty\McpServerBundle\Service\InputSanitizer;
 use Ecourty\McpServerBundle\Service\PromptRegistry;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -61,10 +60,9 @@ class PromptsGetMethodHandler implements MethodHandlerInterface
 
         try {
             $arguments = $request->params['arguments'] ?? [];
-            $sanitizedArguments = $this->inputSanitizer->sanitize($arguments);
 
-            $this->validatePromptArguments($sanitizedArguments, $promptDefinition);
-            $argumentCollection = ArgumentCollection::fromArray($sanitizedArguments);
+            $this->validatePromptArguments($arguments, $promptDefinition);
+            $sanitizedArguments = $this->getSanitizedArguments($arguments, $promptDefinition);
 
             if (method_exists($prompt, '__invoke') === false) {
                 throw new \LogicException(\sprintf('Prompt "%s" does not implement the __invoke method.', $promptName));
@@ -72,10 +70,10 @@ class PromptsGetMethodHandler implements MethodHandlerInterface
 
             $this->eventDispatcher?->dispatch(new PromptGetEvent(
                 promptName: $promptName,
-                arguments: $argumentCollection,
+                arguments: $sanitizedArguments,
             ));
 
-            $promptResult = $prompt->__invoke($argumentCollection);
+            $promptResult = $prompt->__invoke($sanitizedArguments);
 
             if ($promptResult instanceof PromptResult === false) {
                 throw new \LogicException(\sprintf(
@@ -85,11 +83,11 @@ class PromptsGetMethodHandler implements MethodHandlerInterface
                 ));
             }
 
-            $this->eventDispatcher?->dispatch(new PromptResultEvent($promptName, $argumentCollection, $promptResult));
+            $this->eventDispatcher?->dispatch(new PromptResultEvent($promptName, $sanitizedArguments, $promptResult));
         } catch (\Throwable $exception) {
             $this->eventDispatcher?->dispatch(new PromptExceptionEvent(
                 promptName: $promptName,
-                arguments: $argumentCollection ?? null,
+                arguments: $sanitizedArguments ?? null,
                 exception: $exception,
             ));
 
@@ -103,6 +101,33 @@ class PromptsGetMethodHandler implements MethodHandlerInterface
         return $promptResult->toArray();
     }
 
+    /**
+     * @param array<string, mixed> $inputArgument
+     */
+    private function getSanitizedArguments(array $inputArgument, PromptDefinition $promptDefinition): ArgumentCollection
+    {
+        $sanitizedArguments = [];
+        $promptArguments = $promptDefinition->arguments ?? [];
+
+        foreach ($promptArguments as $argument) {
+            $argumentName = $argument->name;
+            $unsafeArgumentValue = $inputArgument[$argumentName] ?? null;
+
+            if ($argument->allowUnsafe === true) {
+                $sanitizedArguments[$argumentName] = $unsafeArgumentValue;
+
+                continue;
+            }
+
+            $sanitizedArguments[$argumentName] = $this->inputSanitizer->sanitize($unsafeArgumentValue);
+        }
+
+        return ArgumentCollection::fromArray($sanitizedArguments);
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     */
     private function validatePromptArguments(array $arguments, PromptDefinition $promptDefinition): void
     {
         $promptArguments = $promptDefinition->arguments ?? [];
