@@ -17,9 +17,15 @@ _Read the [official MCP specification](https://modelcontextprotocol.io/docs/conc
   - [Configuration](#configuration)
 - [Tools](#tools)
   - [Creating Tools](#creating-tools)
-  - [Tool Events](#tool-events)
   - [Tool Results](#tool-results)
+  - [Tool Events](#tool-events)
   - [Input Schema Management](#input-schema-management)
+  - [JSON-RPC Integration](#json-rpc-integration)
+- [Prompts](#prompts)
+  - [Creating Prompts](#creating-prompts)
+  - [Prompt Results](#prompt-results)
+  - [Prompt Events](#prompt-events)
+  - [JSON-RPC Integration](#json-rpc-integration-1)
 - [JSON-RPC Methods](#json-rpc-methods)
   - [Built-in Methods](#built-in-methods)
   - [Custom Methods](#custom-methods)
@@ -130,29 +136,6 @@ class CreateUserTool
 }
 ```
 
-### Tool Events
-
-The bundle provides several events that you can listen to:
-
-- `ToolCallEvent`: Dispatched before a tool is called, contains the tool name and input data
-- `ToolResultEvent`: Dispatched after a tool has been called, contains the result of the tool call
-- `ToolCallExceptionEvent`: Dispatched when a tool throws an exception, contains the tool name, input data and throwable
-
-Example of event listener:
-```php
-use Ecourty\McpServerBundle\Event\ToolCallEvent;
-use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
-
-#[AsEventListener(event: ToolCallEvent::class)]
-class ToolCallListener
-{
-    public function __invoke(ToolCallEvent $event): void
-    {
-        // Your logic here...
-    }
-}
-```
-
 ### Tool Results
 
 The MCP specification states that tool results should consist of an array of objects.  
@@ -225,6 +208,29 @@ The `ToolResult` class provides the following features:
 - Automatic serialization to the correct format
 - Type safety for all results
 
+### Tool Events
+
+The bundle provides several events that you can listen to:
+
+- `ToolCallEvent`: Dispatched before a tool is called, contains the tool name and input data
+- `ToolResultEvent`: Dispatched after a tool has been called, contains the result of the tool call
+- `ToolCallExceptionEvent`: Dispatched when a tool throws an exception, contains the tool name, input data and throwable
+
+Example of event listener:
+```php
+use Ecourty\McpServerBundle\Event\ToolCallEvent;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+
+#[AsEventListener(event: ToolCallEvent::class)]
+class ToolCallListener
+{
+    public function __invoke(ToolCallEvent $event): void
+    {
+        // Your logic here...
+    }
+}
+```
+
 ### Input Schema Management
 
 The bundle provides robust input validation and sanitization through schema-based deserialization.  
@@ -262,6 +268,125 @@ class CreateUser
 
 This ensures that your tool handlers always receive properly validated and sanitized data.
 
+### JSON-RPC Integration
+
+- **`tools/list`**: Lists all available tools and their definitions.
+- **`tools/call`**: Executes a tool by name, with the provided input data.
+
+## Prompts
+
+Prompts are reusable templates that can be dynamically generated and returned by the MCP server.  
+They are useful for providing context, instructions, or any structured message to clients, and can accept arguments for dynamic content.
+
+### Creating Prompts
+
+1. **Define a prompt class**  
+   - Use the `#[AsPrompt]` attribute to register your prompt.
+   - The class should implement the `__invoke` method, which receives an `ArgumentCollection` and returns a `PromptResult`.
+   - Arguments are defined using the `Argument` class (name, description, required, allowUnsafe), within the `#[AsPrompt]` declaration.
+
+**Example:**
+```php
+<?php
+
+namespace App\Prompt;
+
+use Ecourty\McpServerBundle\Attribute\AsPrompt;
+use Ecourty\McpServerBundle\Enum\PromptRole;
+use Ecourty\McpServerBundle\IO\Prompt\Content\TextContent;
+use Ecourty\McpServerBundle\Prompt\Argument;
+use Ecourty\McpServerBundle\IO\Prompt\PromptResult;
+use Ecourty\McpServerBundle\IO\Prompt\PromptMessage;
+use Ecourty\McpServerBundle\Prompt\ArgumentCollection;
+
+#[AsPrompt(
+    name: 'code_review', // Unique identifier for the prompt,
+    description: 'Ask for a code review on a provided piece of code', // Description of the prompt
+    arguments: [
+        new Argument(name: 'code', description: 'The code snippets to review', required: true, allowUnsafe: true), // Required argument
+        new Argument(name: 'language', description: 'The name of the person to greet', required: false), // Optional argument
+        new Argument(name: 'reviewer_level', description: 'The level of review (senior / intermediate / junior...)', required: false), // Optional argument
+    ],
+)]
+class CodeReviewPrompt
+{
+    public function __invoke(ArgumentCollection $arguments): PromptResult
+    {
+        $code = $arguments->get('code');
+        $language = $arguments->get('language');
+        $reviewerLevel = $arguments->get('reviewer_level') ?: 'senior';
+
+        $systemMessage = <<<PROMPT
+You are a $reviewerLevel code reviewer.
+You will be provided with a piece of code in $language.
+Your task is to review the code and provide feedback on its quality, readability, and any potential issues.
+PROMPT;
+
+        $userMessage = <<<PROMPT
+Review the following code snippet: $code
+PROMPT;
+
+        return new PromptResult(
+            description: 'Code Review Prompt',
+            messages: [
+                new PromptMessage(
+                    role: PromptRole::SYSTEM,
+                    content: new TextContent($systemMessage),
+                ),
+                new PromptMessage(
+                    role: PromptRole::USER,
+                    content: new TextContent($userMessage),
+                ),
+            ]
+        );
+    }
+}
+```
+
+### Prompt Results
+
+A prompt must return an instance of `PromptResult`, which contains:
+- A `description` (string)
+- An array of `PromptMessage` objects (each with a role and content)
+
+**Example:**
+```php
+return new PromptResult(
+    description: 'Greeting',
+    messages: [
+        new PromptMessage(role: PromptRole::SYSTEM, content: new TextContent('You are a friendly assistant.')),
+        new PromptMessage(role: PromptRole::USER, content: new TextContent('Hello, how are you?')),
+    ]
+);
+```
+
+### Prompt Events
+
+The bundle provides several events for prompts:
+- `PromptGetEvent`: Dispatched before a prompt is generated
+- `PromptResultEvent`: Dispatched after a prompt is generated
+- `PromptExceptionEvent`: Dispatched if an error occurs during prompt generation
+
+**Example of event listener:**
+```php
+use Ecourty\McpServerBundle\Event\Prompt\PromptExceptionEvent;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+
+#[AsEventListener(event: PromptExceptionEvent::class)]
+class PromptGetListener
+{
+    public function __invoke(PromptExceptionEvent $event): void
+    {
+        // Your logic here...
+    }
+}
+```
+
+### JSON-RPC Integration
+
+- **`prompts/list`**: Lists all available prompts and their definitions.
+- **`prompts/get`**: Retrieves and generates a prompt by name, with arguments.
+
 ## JSON-RPC Methods
 
 The bundle provides a robust system for handling JSON-RPC requests.
@@ -282,6 +407,16 @@ The bundle provides a robust system for handling JSON-RPC requests.
    - Executes a specific tool
    - Handles input validation and tool execution
    - Returns the tool's result or error information
+
+4. **`prompts/list`**
+   - Lists all available prompts and their definitions
+   - Returns prompt names, descriptions, and argument schemas
+   - Useful for clients to discover available prompts
+
+5. **`prompts/get`**
+   - Retrieves a specific prompt by its name and generates it with the provided arguments
+   - Validates and sanitizes arguments, then returns the generated prompt content
+   - Returns an error if the prompt is not found or arguments are invalid
 
 These methods are automatically registered and handled by the bundle. You don't need to implement them yourself.
 
@@ -327,7 +462,7 @@ The bundle provides several tools to help you during development:
 
 ### Debug Command
 
-The `debug:mcp-tools` command helps you inspect and debug your MCP tools:
+1. The `debug:mcp-tools` command helps you inspect and debug your MCP tools:
 
 ```bash
 # List all registered tools
@@ -341,6 +476,20 @@ This command is particularly useful for:
 - Verifying tool registration
 - Checking input schemas
 - Validating tool annotations
+
+2. The `debug:mcp-prompts` command helps you inspect and debug your MCP prompts:
+
+```bash
+# List all registered prompts
+php bin/console debug:mcp-prompts
+
+# Get detailed information about a specific prompt
+php bin/console debug:mcp-prompts my_prompt_name
+```
+
+This command is particularly useful for:
+- Verifying prompt registration
+- Checking argument
 
 ## Contributing
 
