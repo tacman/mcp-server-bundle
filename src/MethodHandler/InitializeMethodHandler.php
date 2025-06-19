@@ -35,10 +35,12 @@ class InitializeMethodHandler implements MethodHandlerInterface
         return [
             'protocolVersion' => self::PROTOCOL_VERSION,
             'capabilities' => [
-                'logging' => [],
-                'prompts' => [],
-                'resources' => [],
-                'tools' => [],
+                'prompts' => [
+                    'listChanged' => false,
+                ],
+                'tools' => [
+                    'listChanged' => false,
+                ],
             ],
             'serverInfo' => [
                 'name' => $this->serverName,
