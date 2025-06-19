@@ -11,7 +11,7 @@ namespace Ecourty\McpServerBundle\Attribute;
 class AsMethodHandler
 {
     /**
-     * @param string $methodName The JSON-RPC method name that the handler will respond to.
+     * @param string $methodName the JSON-RPC method name that the handler will respond to
      */
     public function __construct(
         public string $methodName,

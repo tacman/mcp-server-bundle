@@ -11,6 +11,7 @@ return $config
     ->setRiskyAllowed(true)
     ->setRules([
         '@PSR12' => true,
+        '@Symfony' => true,
         'simplified_null_return' => false,
         'concat_space' => ['spacing' => 'one'],
         'phpdoc_summary' => false,

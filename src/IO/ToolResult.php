@@ -8,7 +8,7 @@ use Ecourty\McpServerBundle\Contract\ToolResultInterface;
 
 class ToolResult
 {
-    /** @var ToolResultInterface[] $elements */
+    /** @var ToolResultInterface[] */
     private array $elements = [];
     private bool $isError = false;
 

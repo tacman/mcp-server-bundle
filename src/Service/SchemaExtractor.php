@@ -8,8 +8,6 @@ use OpenApi\Attributes\Items;
 use OpenApi\Attributes\Property;
 use OpenApi\Attributes\Schema;
 use OpenApi\Generator;
-use ReflectionClass;
-use ReflectionProperty;
 
 /**
  * Extracts schema information from a class using OpenAPI attributes.
@@ -24,10 +22,10 @@ class SchemaExtractor
      */
     public function extract(string $class): array
     {
-        $reflection = new ReflectionClass($class);
+        $reflection = new \ReflectionClass($class);
         $properties = [];
 
-        foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
+        foreach ($reflection->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
             $attribute = $this->getPropertyAttribute($property);
 
             if ($attribute === null) {
@@ -94,7 +92,7 @@ class SchemaExtractor
         return $value === Generator::UNDEFINED ? $default : $value;
     }
 
-    private function getPropertyAttribute(ReflectionProperty $property): ?Property
+    private function getPropertyAttribute(\ReflectionProperty $property): ?Property
     {
         $propertyAttributes = $property->getAttributes(Property::class);
 
@@ -105,7 +103,7 @@ class SchemaExtractor
         return $propertyAttributes[0]->newInstance();
     }
 
-    private function getSchemaAttribute(ReflectionClass $class): ?Schema // @phpstan-ignore missingType.generics
+    private function getSchemaAttribute(\ReflectionClass $class): ?Schema // @phpstan-ignore missingType.generics
     {
         $schemaAttributes = $class->getAttributes(Schema::class);
 

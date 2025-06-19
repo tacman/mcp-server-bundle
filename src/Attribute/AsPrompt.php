@@ -15,9 +15,9 @@ class AsPrompt
     private readonly array $arguments;
 
     /**
-     * @param string $name The name of the prompt.
-     * @param string|null $description A description of the prompt.
-     * @param array<Argument|mixed> $arguments An array of argument definitions for the prompt.
+     * @param string                $name        the name of the prompt
+     * @param string|null           $description a description of the prompt
+     * @param array<Argument|mixed> $arguments   an array of argument definitions for the prompt
      */
     public function __construct(
         public readonly string $name,

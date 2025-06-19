@@ -16,9 +16,9 @@ class AsTool
     private readonly ToolAnnotations $toolAnnotations;
 
     /**
-     * @param string $name The name of the tool, which can be called by clients.
-     * @param string $description A human-readable description of the tool, useful for LLMs to understand its purpose.
-     * @param ToolAnnotations|null $annotations Optional annotations for the tool, providing additional metadata such as title, read-only status, and hints about the tool's behavior.
+     * @param string               $name        the name of the tool, which can be called by clients
+     * @param string               $description a human-readable description of the tool, useful for LLMs to understand its purpose
+     * @param ToolAnnotations|null $annotations optional annotations for the tool, providing additional metadata such as title, read-only status, and hints about the tool's behavior
      */
     public function __construct(
         public string $name,
