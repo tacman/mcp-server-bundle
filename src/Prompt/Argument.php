@@ -10,8 +10,8 @@ namespace Ecourty\McpServerBundle\Prompt;
 class Argument
 {
     /**
-     * @param bool $required Indicates if the argument is required (will throw an error if true and not provided).
-     * @param bool $allowUnsafe Indicates if the argument allows unsafe content (will not be sanitized if true).
+     * @param bool $required    indicates if the argument is required (will throw an error if true and not provided)
+     * @param bool $allowUnsafe indicates if the argument allows unsafe content (will not be sanitized if true)
      */
     public function __construct(
         public readonly string $name,

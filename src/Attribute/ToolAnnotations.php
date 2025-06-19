@@ -13,11 +13,11 @@ namespace Ecourty\McpServerBundle\Attribute;
 class ToolAnnotations
 {
     /**
-     * @param string $title A human-readable title for the tool, useful for UI display
-     * @param bool $readOnlyHint If true, indicates the tool does not modify its environment
-     * @param bool $destructiveHint If true, the tool may perform destructive updates (only meaningful when readOnlyHint is false)
-     * @param bool $idempotentHint If true, calling the tool repeatedly with the same arguments has no additional effect (only meaningful when readOnlyHint is false)
-     * @param bool $openWorldHint If true, the tool may interact with an “open world” of external entities
+     * @param string $title           A human-readable title for the tool, useful for UI display
+     * @param bool   $readOnlyHint    If true, indicates the tool does not modify its environment
+     * @param bool   $destructiveHint If true, the tool may perform destructive updates (only meaningful when readOnlyHint is false)
+     * @param bool   $idempotentHint  If true, calling the tool repeatedly with the same arguments has no additional effect (only meaningful when readOnlyHint is false)
+     * @param bool   $openWorldHint   If true, the tool may interact with an “open world” of external entities
      */
     public function __construct(
         public readonly string $title = '',

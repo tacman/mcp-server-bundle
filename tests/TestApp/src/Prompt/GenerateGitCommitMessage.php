@@ -9,8 +9,8 @@ use Ecourty\McpServerBundle\Enum\PromptRole;
 use Ecourty\McpServerBundle\IO\Prompt\Content\TextContent;
 use Ecourty\McpServerBundle\IO\Prompt\PromptMessage;
 use Ecourty\McpServerBundle\IO\Prompt\PromptResult;
-use Ecourty\McpServerBundle\Prompt\ArgumentCollection;
 use Ecourty\McpServerBundle\Prompt\Argument;
+use Ecourty\McpServerBundle\Prompt\ArgumentCollection;
 
 #[AsPrompt(
     name: 'generate-git-commit-message',
