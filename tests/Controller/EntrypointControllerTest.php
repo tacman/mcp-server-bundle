@@ -67,6 +67,9 @@ class EntrypointControllerTest extends WebTestCase
         $this->assertArrayHasKey('name', $serverInfo);
         $this->assertSame('My Test MCP Server', $serverInfo['name']);
 
+        $this->assertArrayHasKey('title', $serverInfo);
+        $this->assertSame('My Test MCP Server Title', $serverInfo['title']);
+
         $this->assertArrayHasKey('version', $serverInfo);
         $this->assertSame('1.0.1', $serverInfo['version']);
     }
@@ -486,5 +489,216 @@ class EntrypointControllerTest extends WebTestCase
         // Check if the unsafe content is present in the response
         $resultContent = $responseContent['result'];
         $this->assertStringContainsString($unsafeContent, $resultContent['messages'][0]['content']['text']);
+    }
+
+    public function testDirectResourceList(): void
+    {
+        $response = $this->request(
+            method: Request::METHOD_POST,
+            url: '/mcp',
+            body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'resources/list',
+            ],
+        );
+
+        $responseContent = json_decode((string) $response->getContent(), true);
+        $this->assertNotFalse($responseContent);
+
+        $this->assertSame([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => [
+                'resources' => [
+                    [
+                        'uri' => 'file://random',
+                        'name' => 'random_file',
+                        'title' => 'Get a random file',
+                        'description' => 'This resource returns the content of a random file.',
+                        'mimeType' => 'text/plain',
+                    ],
+                    [
+                        'uri' => 'file://robots.txt',
+                        'name' => 'robots_txt',
+                        'title' => 'Get the Robots.txt file',
+                        'description' => 'This resource returns the content of the robots.txt file.',
+                        'mimeType' => 'text/plain',
+                    ],
+                ],
+            ],
+        ], $responseContent);
+    }
+
+    public function testTemplateResourceList(): void
+    {
+        $response = $this->request(
+            method: Request::METHOD_POST,
+            url: '/mcp',
+            body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'resources/templates/list',
+            ],
+        );
+
+        $responseContent = json_decode((string) $response->getContent(), true);
+        $this->assertNotFalse($responseContent);
+
+        $this->assertSame([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => [
+                'resourceTemplates' => [
+                    [
+                        'name' => 'order_data',
+                        'title' => 'Get Order Data',
+                        'description' => 'Gathers the data of an order by their ID.',
+                        'mimeType' => 'application/json',
+                        'uriTemplate' => 'database://order/{id}',
+                    ],
+                    [
+                        'name' => 'user_data',
+                        'title' => 'Get User Data',
+                        'description' => 'Gathers the data of a user by their ID.',
+                        'mimeType' => 'application/json',
+                        'uriTemplate' => 'database://user/{id}',
+                    ],
+                ],
+            ],
+        ], $responseContent);
+    }
+
+    public function testCallNotFoundResource(): void
+    {
+        $response = $this->request(
+            method: Request::METHOD_POST,
+            url: '/mcp',
+            body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'resources/read',
+                'params' => [
+                    'uri' => 'database://non_existing_resource/123',
+                ],
+            ],
+        );
+
+        $responseContent = json_decode((string) $response->getContent(), true);
+        $this->assertNotFalse($responseContent);
+
+        $this->assertSame([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'error' => [
+                'code' => McpErrorCode::INTERNAL_ERROR->value,
+                'message' => McpErrorCode::INTERNAL_ERROR->getMessage(),
+            ],
+        ], $responseContent);
+    }
+
+    public function testCallDirectResource(): void
+    {
+        $response = $this->request(
+            method: Request::METHOD_POST,
+            url: '/mcp',
+            body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'resources/read',
+                'params' => [
+                    'uri' => 'file://robots.txt',
+                ],
+            ],
+        );
+
+        $responseContent = json_decode((string) $response->getContent(), true);
+        $this->assertNotFalse($responseContent);
+
+        $this->assertSame([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => [
+                'contents' => [
+                    [
+                        'uri' => 'file://robots.txt',
+                        'name' => 'robots.txt',
+                        'title' => 'The robots.txt file',
+                        'mimeType' => 'text/plain',
+                        'text' => 'Disallow: /',
+                    ],
+                ],
+            ],
+        ], $responseContent);
+    }
+
+    #[DataProvider('provideTestDataForTemplateResourceCall')]
+    public function testCallTemplateResource(string $uri, array $expectedResult): void
+    {
+        $response = $this->request(
+            method: Request::METHOD_POST,
+            url: '/mcp',
+            body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'resources/read',
+                'params' => [
+                    'uri' => $uri,
+                ],
+            ],
+        );
+
+        $responseContent = json_decode((string) $response->getContent(), true);
+        $this->assertNotFalse($responseContent);
+
+        $this->assertSame($expectedResult, $responseContent['result']);
+    }
+
+    public static function provideTestDataForTemplateResourceCall(): \Generator
+    {
+        yield [
+            'uri' => 'database://order/1',
+            'expectedResult' => [
+                'contents' => [
+                    [
+                        'uri' => 'database://order/1',
+                        'name' => 'order_1',
+                        'title' => 'Order data',
+                        'mimeType' => 'application/json',
+                        'text' => '{"id":1,"reference":"C4CA4238A0B923820DCC509A6F75849B","status":"pending"}',
+                    ],
+                ],
+            ],
+        ];
+
+        yield [
+            'uri' => 'database://user/2',
+            'expectedResult' => [
+                'contents' => [
+                    [
+                        'uri' => 'database://user/2',
+                        'name' => 'user_2',
+                        'title' => 'User data',
+                        'mimeType' => 'application/json',
+                        'text' => '{"id":2,"name":"User 2","email":"user2@example.com"}',
+                    ],
+                ],
+            ],
+        ];
+
+        yield [
+            'uri' => 'database://user/999',
+            'expectedResult' => [
+                'contents' => [
+                    [
+                        'uri' => 'database://user/999',
+                        'name' => 'user_999',
+                        'title' => 'User data',
+                        'mimeType' => 'application/json',
+                        'text' => '{"id":999,"name":"User 999","email":"user999@example.com"}',
+                    ],
+                ],
+            ],
+        ];
     }
 }

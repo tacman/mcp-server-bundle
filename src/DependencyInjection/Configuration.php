@@ -14,6 +14,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 class Configuration implements ConfigurationInterface
 {
     private const string DEFAULT_NAME = 'MCP Server';
+    private const string DEFAULT_TITLE = self::DEFAULT_NAME;
     private const string DEFAULT_VERSION = '1.0.0';
 
     public function getConfigTreeBuilder(): TreeBuilder
@@ -29,6 +30,7 @@ class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('name')->defaultValue(self::DEFAULT_NAME)->end()
+                        ->scalarNode('title')->defaultValue(self::DEFAULT_TITLE)->end()
                         ->scalarNode('version')->defaultValue(self::DEFAULT_VERSION)->end()
                     ->end()
                 ->end()

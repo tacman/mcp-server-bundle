@@ -17,6 +17,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 class InitializeMethodHandlerTest extends TestCase
 {
     private const string SERVER_NAME = 'Test Server';
+    private const string SERVER_TITLE = 'Test Server Title';
     private const string SERVER_VERSION = '1.1.0';
 
     private MockObject&EventDispatcherInterface $eventDispatcher;
@@ -29,6 +30,7 @@ class InitializeMethodHandlerTest extends TestCase
 
         $this->initializeMethodHandler = new InitializeMethodHandler(
             serverName: self::SERVER_NAME,
+            serverTitle: self::SERVER_TITLE,
             serverVersion: self::SERVER_VERSION,
             eventDispatcher: $this->eventDispatcher,
         );
@@ -50,6 +52,7 @@ class InitializeMethodHandlerTest extends TestCase
 
         $this->assertSame($result['protocolVersion'], InitializeMethodHandler::PROTOCOL_VERSION);
         $this->assertSame($result['serverInfo']['name'], self::SERVER_NAME);
+        $this->assertSame($result['serverInfo']['title'], self::SERVER_TITLE);
         $this->assertSame($result['serverInfo']['version'], self::SERVER_VERSION);
     }
 }

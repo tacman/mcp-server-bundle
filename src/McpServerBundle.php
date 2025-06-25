@@ -6,6 +6,7 @@ namespace Ecourty\McpServerBundle;
 
 use Ecourty\McpServerBundle\DependencyInjection\CompilerPass\MethodHandlerPass;
 use Ecourty\McpServerBundle\DependencyInjection\CompilerPass\PromptPass;
+use Ecourty\McpServerBundle\DependencyInjection\CompilerPass\ResourcePass;
 use Ecourty\McpServerBundle\DependencyInjection\CompilerPass\ToolPass;
 use Ecourty\McpServerBundle\DependencyInjection\McpServerBundleExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -31,5 +32,6 @@ class McpServerBundle extends AbstractBundle
         $container->addCompilerPass(new MethodHandlerPass());
         $container->addCompilerPass(new ToolPass());
         $container->addCompilerPass(new PromptPass());
+        $container->addCompilerPass(new ResourcePass());
     }
 }

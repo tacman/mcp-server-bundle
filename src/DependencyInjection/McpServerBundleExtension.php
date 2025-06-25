@@ -32,7 +32,7 @@ class McpServerBundleExtension extends Extension
         $configuration = $this->getConfiguration($configs, $container);
 
         /**
-         * @var array{server: array{name: string, version: string}} $config
+         * @var array{server: array{name: string, title: string, version: string}} $config
          */
         $config = $this->processConfiguration($configuration, $configs);
 
@@ -41,6 +41,7 @@ class McpServerBundleExtension extends Extension
 
         $container->getDefinition(InitializeMethodHandler::class)
             ->setArgument('$serverName', $config['server']['name'])
+            ->setArgument('$serverTitle', $config['server']['title'])
             ->setArgument('$serverVersion', $config['server']['version']);
     }
 }
