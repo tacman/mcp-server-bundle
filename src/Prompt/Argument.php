@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Ecourty\McpServerBundle\Prompt;
 
+use Symfony\Component\Serializer\Attribute\Ignore;
+
 /**
  * Represents an argument within a prompt.
  */
@@ -17,6 +19,7 @@ class Argument
         public readonly string $name,
         public readonly string $description,
         public readonly bool $required = true,
+        #[Ignore]
         public readonly bool $allowUnsafe = false,
     ) {
     }

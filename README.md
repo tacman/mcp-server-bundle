@@ -21,11 +21,20 @@ _Read the [official MCP specification](https://modelcontextprotocol.io/docs/conc
   - [Tool Events](#tool-events)
   - [Input Schema Management](#input-schema-management)
   - [JSON-RPC Integration](#json-rpc-integration)
+- [Resources](#resources)
+  - [Creating Resources](#creating-resources)
+    - [Static Resources](#static-resources)
+    - [Templated Resources](#templated-resources)
+    - [Multiple Parameters](#multiple-parameters)
+    - [Parameter Type Casting](#parameter-type-casting)
+  - [Resource Results](#resource-results)
+  - [Resource Events](#resource-events)
+  - [JSON-RPC Integration](#json-rpc-integration-1)
 - [Prompts](#prompts)
   - [Creating Prompts](#creating-prompts)
   - [Prompt Results](#prompt-results)
   - [Prompt Events](#prompt-events)
-  - [JSON-RPC Integration](#json-rpc-integration-1)
+  - [JSON-RPC Integration](#json-rpc-integration-2)
 - [JSON-RPC Methods](#json-rpc-methods)
   - [Built-in Methods](#built-in-methods)
   - [Custom Methods](#custom-methods)
@@ -272,6 +281,228 @@ This ensures that your tool handlers always receive properly validated and sanit
 
 - **`tools/list`**: Lists all available tools and their definitions.
 - **`tools/call`**: Executes a tool by name, with the provided input data.
+
+## Resources
+
+Resources are data sources that can be accessed by clients via their URI.  
+They can represent files, database records, or any other data that can be identified by a URI.
+
+### Creating Resources
+
+1. Create a new class that will handle your resource logic
+2. Use the `#[AsResource]` attribute to register your resource
+3. Define the URI pattern for your resource (static or templated)
+4. Implement the `__invoke` method to handle the resource logic and return a `ResourceResult`
+
+_As Resource classes are services within the Symfony application, any dependency can be injected in it, using the constructor, like any other service._
+
+#### Static Resources
+
+Static resources have a fixed URI that doesn't change. They are useful for resources that don't require parameters.
+
+Example:
+```php
+<?php
+
+use Ecourty\McpServerBundle\Attribute\AsResource;
+use Ecourty\McpServerBundle\IO\Resource\ResourceResult;
+use Ecourty\McpServerBundle\IO\Resource\TextResource;
+
+#[AsResource(
+    uri: 'file://robots.txt',
+    name: 'robots_txt',
+    title: 'Get the Robots.txt file',
+    description: 'This resource returns the content of the robots.txt file.',
+    mimeType: 'text/plain',
+)]
+class RobotsFileResource
+{
+    private const string FILE_PATH = __DIR__ . '/../Resources/robots.txt';
+
+    public function __invoke(): ResourceResult
+    {
+        $fileContent = (string) file_get_contents(self::FILE_PATH);
+        $encodedFileContent = base64_encode($fileContent);
+
+        return new ResourceResult([
+            new BinaryResource('file://robots.txt', 'text/plain', $encodedFileContent),
+        ]);
+    }
+}
+```
+
+#### Templated Resources
+
+Templated resources use URI templates with parameters enclosed in curly braces (e.g., `{id}`). These parameters are automatically extracted from the URI and passed to the `__invoke` method as arguments.
+
+Example:
+```php
+<?php
+
+use Ecourty\McpServerBundle\Attribute\AsResource;
+use Ecourty\McpServerBundle\IO\Resource\ResourceResult;
+use Ecourty\McpServerBundle\IO\Resource\TextResource;
+
+#[AsResource(
+    uri: 'database://user/{id}',
+    name: 'user_data',
+    title: 'Get User Data',
+    description: 'Gathers the data of a user by their ID.',
+    mimeType: 'application/json',
+)]
+class UserResource
+{
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SerializerInterface $serializer,
+    ) {
+    }
+
+    public function __invoke(int $id): ResourceResult
+    {
+        $user = $this->entityManager->find(User::class, $id);
+        if ($user === null) {
+            throw new \RuntimeException('User not found');
+        }
+
+        $stringifiedUserData = $this->serializer->serialize($user, 'json');
+
+        return new ResourceResult([
+            new TextResource(
+                uri: 'database://user/' . $id,
+                mimeType: 'application/json',
+                text: $stringifiedUserData,
+            ),
+        ]);
+    }
+}
+```
+
+In this example:
+- The URI template `database://user/{id}` defines a parameter named `id`
+- When a client requests `database://user/123`, the parameter `123` is extracted
+- The `__invoke` method receives `123` as an `int` parameter (automatic type casting is performed)
+- The resource returns user data for ID 123
+
+#### Multiple Parameters
+
+You can define multiple parameters in a single URI template:
+
+```php
+#[AsResource(
+    uri: 'api://users/{userId}/posts/{postId}',
+    name: 'user_post',
+    title: 'Get User Post',
+    description: 'Retrieves a specific post by a user.',
+    mimeType: 'application/json',
+)]
+class UserPostResource
+{
+    public function __invoke(int $userId, int $postId): ResourceResult
+    {
+        // Your logic here...
+        $post = $this->postRepository->findByUserAndPost($userId, $postId);
+        
+        return new ResourceResult([
+            new TextResource(
+                uri: "api://users/{$userId}/posts/{$postId}",
+                mimeType: 'application/json',
+                text: json_encode($post),
+            ),
+        ]);
+    }
+}
+```
+
+#### Parameter Type Casting
+
+The bundle automatically casts URI parameters to the appropriate types based on the method signature:
+
+- `int` parameters are cast to integers
+- `float` parameters are cast to floats
+- `bool` parameters are cast to booleans
+- `string` parameters remain as strings
+- `array` parameters are JSON-decoded into arrays using `json_decode` if they are JSON strings
+
+### Resource Results
+
+The [MCP specification](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#reading-resources) states that resource results should consist of an array of resource objects.  
+The bundle provides several result types that can be combined in a single `ResourceResult` object:
+
+- `TextResource`: For text-based content (JSON, XML, plain text, etc.)
+- `BinaryResource`: For binary content (images, audio, video, files, etc.), should be base-64 encoded
+
+All resource results must be wrapped in a `ResourceResult` object, which can contain multiple resources.
+
+Example:
+```php
+<?php
+
+use Ecourty\McpServerBundle\IO\Resource\ResourceResult;
+use Ecourty\McpServerBundle\IO\Resource\TextResource;
+use Ecourty\McpServerBundle\IO\Resource\BinaryResource;
+
+#[AsResource(
+    // ...
+)]
+class MyResource
+{
+    public function __invoke(): ResourceResult
+    {
+        $jsonData = json_encode(['status' => 'success']);
+        $imageData = base64_encode(file_get_contents('image.jpg'));
+
+        return new ResourceResult([
+            new TextResource(
+                uri: 'api://data/status',
+                mimeType: 'application/json',
+                text: $jsonData,
+            ),
+            new BinaryResource(
+                uri: 'file://image.jpg',
+                mimeType: 'image/jpeg',
+                blob: $imageData,
+            ),
+        ]);
+    }
+}
+```
+
+The `ResourceResult` class provides the following features:
+- Combine multiple resources of different types
+- Automatic serialization to the correct format
+- Type safety for all resources
+
+### Resource Events
+
+The bundle provides several events that you can listen to:
+
+- `ResourceReadEvent`: Dispatched before a resource is read, contains the URI
+- `ResourceReadResultEvent`: Dispatched after a resource has been read, contains the URI and results
+
+Example of event listener:
+```php
+<?php
+
+use Ecourty\McpServerBundle\Event\ResourceReadEvent;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+
+#[AsEventListener(event: ResourceReadEvent::class)]
+class ResourceReadListener
+{
+    public function __invoke(ResourceReadEvent $event): void
+    {
+        // Your logic here...
+        // Log the resource access, add caching, etc.
+    }
+}
+```
+
+### JSON-RPC Integration
+
+- **`resources/list`**: Lists all available direct (static) resources and their definitions.
+- **`resources/templates/list`**: Lists all available templated resources and their definitions.
+- **`resources/read`**: Retrieves a resource by its URI, automatically matching templated resources and extracting parameters.
 
 ## Prompts
 
@@ -526,3 +757,5 @@ composer test
 ## License
 
 This bundle is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+

@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Added support for Resources
+  - Support for `resources/list`, `resources/templates/list` and `resources/read` JSON-RPC methods
+  - Added `AsResource` attribute to register resources
+  - Added events for resource management (`ResourceReadEvent`, `ResourceReadResultEvent`)
+  - Added tests to cover the resource functionality
+
+### Updated
+
+- Updated MCP Protocol to version `2025-06-18`
+- Updated the configuration to include the `title` value, used in the initialization phase (JSON-RPC `initialize` method)
+- Updated the `initialize` JSON-RPC method to return the `title` value from the configuration
+- Updated the README to include the new resource functionality and examples
+
 ## [1.1.0] - 2025-06-19
 
 ### Added
