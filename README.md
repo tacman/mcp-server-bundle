@@ -80,6 +80,7 @@ You can customize the MCP Server Bundle configuration in `config/packages/mcp_se
 mcp_server:
   server:
     name: 'My MCP Server' # The name of your MCP server, used in the initialization response
+    title: 'My MCP Server Display Name' # The title of your MCP server, used in the initialization response
     version: '1.0.0' # The version of your MCP server, used in the initialization response
 ```
 
