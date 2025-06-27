@@ -650,6 +650,21 @@ The bundle provides a robust system for handling JSON-RPC requests.
    - Validates and sanitizes arguments, then returns the generated prompt content
    - Returns an error if the prompt is not found or arguments are invalid
 
+6. **`resources/list`**
+   - Lists all available static resources and their definitions
+   - Returns resource URIs, descriptions, and metadata
+   - Useful for clients to discover available resources
+
+7. **`resources/templates/list`**
+   - Lists all available static and templated resources
+   - Returns resource URIs, descriptions, and metadata
+   - Useful for clients to discover available template resources
+
+8. **`resources/read`**
+   - Reads a specific resource by its URI
+   - Automatically matches templated resources and extracts parameters
+   - Returns the resource content or an error if the resource is not found
+
 These methods are automatically registered and handled by the bundle. You don't need to implement them yourself.
 
 ### Custom Methods
