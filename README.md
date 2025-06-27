@@ -738,6 +738,20 @@ This command is particularly useful for:
 - Verifying prompt registration
 - Checking argument
 
+3. The `debug:mcp-resources` command helps you inspect and debug your MCP resources:
+
+```bash
+# List all registered resources
+php bin/console debug:mcp-resources
+
+# Get detailed information about a specific resource
+php bin/console debug:mcp-resources my_resource_name
+```
+
+This command is particularly useful for:
+- Verifying resource registration
+- Checking URI patterns
+
 ## Contributing
 
 Contributions to the MCP Server Bundle are welcome! Here's how you can help:
