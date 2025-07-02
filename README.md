@@ -5,6 +5,15 @@
 A powerful Symfony bundle for handling MCP (Message Control Protocol) server implementations, providing tools for JSON-RPC request handling and tool management.    
 _Read the [official MCP specification](https://modelcontextprotocol.io/docs/concepts/tools#overview)._
 
+MCP Servers provide the fundamental building blocks for adding context to language models via MCP.  
+These primitives enable rich interactions between clients, servers, and language models:
+
+- **Prompts**: Pre-defined templates or instructions that guide language model interactions
+- **Resources**: Structured data or content that provides additional context to the model
+- **Tools**: Executable functions that allow models to perform actions or retrieve information
+
+The current MCP protocol supported version is `2025-06-18`, which is the latest stable version as of June 2025.
+
 > [!WARNING]  
 > The specification of the Model Context Protocol (MCP) changes frequently.
 > This bundle will evolve along with the specification, so please ensure you are using the latest version of the bundle.  
