@@ -66,7 +66,7 @@ class ToolRegistry
         string $name,
         string $description,
         array $inputSchema,
-        string $inputSchemaClass,
+        ?string $inputSchemaClass,
         array $annotations,
     ): void {
         if (isset($this->toolDefinitions[$name]) === true) {

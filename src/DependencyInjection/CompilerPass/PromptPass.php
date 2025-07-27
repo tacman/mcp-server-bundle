@@ -55,9 +55,9 @@ class PromptPass implements CompilerPassInterface
             }
 
             $invokeMethodParameters = $refClass->getMethod('__invoke')->getParameters();
-            if (\count($invokeMethodParameters) !== 1) {
+            if (\count($invokeMethodParameters) > 1) {
                 throw new \LogicException(\sprintf(
-                    'Class "%s" must have exactly one parameter in the __invoke method to be used as a prompt.',
+                    'Class "%s" must have a maximum of one parameter in the __invoke method to be used as a prompt.',
                     $class,
                 ));
             }

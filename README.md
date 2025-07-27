@@ -101,7 +101,7 @@ Tools are the core components of the MCP Server Bundle. They allow you to define
 
 1. Create a new class that will handle your tool logic
 2. Use the `#[AsTool]` attribute to register your tool
-3. Define the input schema for your tool using a class with validation constraints and OpenAPI attributes
+3. Optionally, define the input schema for your tool using a class with validation constraints and OpenAPI attributes
 4. Implement the `__invoke` method to handle the tool logic and return a `ToolResult`
 
 _As Tool classes are services within the Symfony application, any dependency can be injected in it, using the constructor, like any other service._
@@ -523,7 +523,7 @@ They are useful for providing context, instructions, or any structured message t
 
 1. **Define a prompt class**  
    - Use the `#[AsPrompt]` attribute to register your prompt.
-   - The class should implement the `__invoke` method, which receives an `ArgumentCollection` and returns a `PromptResult`.
+   - The class should implement the `__invoke` method, which optionally receives an `ArgumentCollection` and returns a `PromptResult`.
    - Arguments are defined using the `Argument` class (name, description, required, allowUnsafe), within the `#[AsPrompt]` declaration.
 
 **Example:**

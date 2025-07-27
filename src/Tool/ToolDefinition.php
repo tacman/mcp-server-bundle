@@ -30,7 +30,7 @@ class ToolDefinition
         public string $description,
         public array $inputSchema,
         #[Ignore]
-        public string $inputSchemaClass,
+        public ?string $inputSchemaClass,
         public array $annotations,
     ) {
     }
