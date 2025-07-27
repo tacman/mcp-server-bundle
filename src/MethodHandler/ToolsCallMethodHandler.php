@@ -18,6 +18,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\ConstraintViolationInterface;
+use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -69,20 +70,25 @@ class ToolsCallMethodHandler implements MethodHandlerInterface
             $jsonPayload = json_encode($sanitizedInput, \JSON_THROW_ON_ERROR);
             $inputSchemaClass = $toolDefinition->inputSchemaClass;
 
-            $inputModel = $this->serializer->deserialize(
-                data: $jsonPayload,
-                type: $inputSchemaClass,
-                format: 'json',
-            );
+            $inputModel = $inputSchemaClass === null
+                ? null
+                : $this->serializer->deserialize(
+                    data: $jsonPayload,
+                    type: $inputSchemaClass,
+                    format: 'json',
+                );
 
-            if ($inputModel instanceof $inputSchemaClass === false) {
+            if ($inputSchemaClass !== null && $inputModel instanceof $inputSchemaClass === false) {
                 throw new \InvalidArgumentException(\sprintf(
                     'Deserialized result is not an instance of "%s".',
                     $inputSchemaClass,
                 ));
             }
 
-            $violations = $this->validator->validate($inputModel);
+            $violations = $inputModel === null
+                ? new ConstraintViolationList()
+                : $this->validator->validate($inputModel);
+
             if ($violations->count() > 0) {
                 return $this->buildValidationErrorResponse(iterator_to_array($violations));
             }
@@ -97,7 +103,9 @@ class ToolsCallMethodHandler implements MethodHandlerInterface
                 $this->eventDispatcher->dispatch($event);
             }
 
-            $toolResult = $tool->__invoke($inputModel);
+            $toolResult = $inputModel === null
+                ? $tool->__invoke()
+                : $tool->__invoke($inputModel);
 
             if ($toolResult instanceof ToolResult === false) {
                 throw new \LogicException(\sprintf(

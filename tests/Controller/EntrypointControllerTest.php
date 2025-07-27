@@ -105,18 +105,21 @@ class EntrypointControllerTest extends WebTestCase
         $this->assertArrayNotHasKey('isError', $resultContent);
 
         $this->assertArrayHasKey('tools', $resultContent);
-        $this->assertCount(3, $resultContent['tools']);
+        $this->assertCount(4, $resultContent['tools']);
 
         $tools = $resultContent['tools'];
 
         $this->assertSame('create_user', $tools[0]['name']);
         $this->assertSame('Creates a user based on the provided data', $tools[0]['description']);
 
-        $this->assertSame('multiply_numbers', $tools[1]['name']);
-        $this->assertSame('Calculates the product of two numbers', $tools[1]['description']);
+        $this->assertSame('date_time', $tools[1]['name']);
+        $this->assertSame('Retrieve the date and time of the server', $tools[1]['description']);
 
-        $this->assertSame('sum_numbers', $tools[2]['name']);
-        $this->assertSame('Calculates the sum of two numbers', $tools[2]['description']);
+        $this->assertSame('multiply_numbers', $tools[2]['name']);
+        $this->assertSame('Calculates the product of two numbers', $tools[2]['description']);
+
+        $this->assertSame('sum_numbers', $tools[3]['name']);
+        $this->assertSame('Calculates the sum of two numbers', $tools[3]['description']);
 
         $this->assertArrayHasKey('inputSchema', $tools[0]);
         $this->assertSame([
@@ -149,6 +152,9 @@ class EntrypointControllerTest extends WebTestCase
         ], $tools[0]['annotations']);
 
         $this->assertArrayHasKey('inputSchema', $tools[1]);
+        $this->assertSame([], $tools[1]['inputSchema']);
+
+        $this->assertArrayHasKey('inputSchema', $tools[2]);
         $this->assertSame([
             'type' => 'object',
             'properties' => [
@@ -163,18 +169,18 @@ class EntrypointControllerTest extends WebTestCase
                     'nullable' => false,
                 ],
             ],
-        ], $tools[1]['inputSchema']);
+        ], $tools[2]['inputSchema']);
 
-        $this->assertArrayHasKey('annotations', $tools[1]);
+        $this->assertArrayHasKey('annotations', $tools[2]);
         $this->assertSame([
             'title' => 'Multiply Numbers',
             'readOnlyHint' => true,
             'destructiveHint' => false,
             'idempotentHint' => false,
             'openWorldHint' => false,
-        ], $tools[1]['annotations']);
+        ], $tools[2]['annotations']);
 
-        $this->assertArrayHasKey('inputSchema', $tools[2]);
+        $this->assertArrayHasKey('inputSchema', $tools[3]);
         $this->assertSame([
             'type' => 'object',
             'properties' => [
@@ -189,16 +195,16 @@ class EntrypointControllerTest extends WebTestCase
                     'nullable' => false,
                 ],
             ],
-        ], $tools[2]['inputSchema']);
+        ], $tools[3]['inputSchema']);
 
-        $this->assertArrayHasKey('annotations', $tools[2]);
+        $this->assertArrayHasKey('annotations', $tools[3]);
         $this->assertSame([
             'title' => '',
             'readOnlyHint' => false,
             'destructiveHint' => true,
             'idempotentHint' => false,
             'openWorldHint' => true,
-        ], $tools[2]['annotations']);
+        ], $tools[3]['annotations']);
     }
 
     /**
@@ -229,6 +235,40 @@ class EntrypointControllerTest extends WebTestCase
                 'message' => McpErrorCode::TOOL_NOT_FOUND->getMessage(),
             ],
         ], $responseContent);
+    }
+
+    public function testToolCallWithNoParameters(): void
+    {
+        $response = $this->request(
+            method: Request::METHOD_POST,
+            url: '/mcp',
+            body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'tools/call',
+                'params' => [
+                    'name' => 'date_time',
+                ],
+            ],
+        );
+
+        $responseContent = json_decode((string) $response->getContent(), true);
+        $this->assertNotFalse($responseContent);
+
+        $this->assertArrayHasKey('result', $responseContent);
+
+        $result = $responseContent['result'];
+
+        $this->assertArrayHasKey('content', $result);
+        $content = $result['content'];
+
+        $this->assertCount(1, $content);
+
+        $content0 = $content[0];
+        $this->assertSame('text', $content0['type']);
+        $dateTime = $content0['text'];
+
+        $this->assertEqualsWithDelta(new \DateTime(), new \DateTime($dateTime), 1);
     }
 
     /**
@@ -360,9 +400,10 @@ class EntrypointControllerTest extends WebTestCase
         $resultContent = $responseContent['result'];
 
         $this->assertArrayHasKey('prompts', $resultContent);
-        $this->assertCount(2, $resultContent['prompts']);
+        $this->assertCount(3, $resultContent['prompts']);
 
         $prompts = $resultContent['prompts'];
+
         $this->assertSame('generate-git-commit-message', $prompts[0]['name']);
         $this->assertSame('Generate a git commit message based on the provided changes.', $prompts[0]['description']);
         $this->assertArrayHasKey('arguments', $prompts[0]);
@@ -381,6 +422,10 @@ class EntrypointControllerTest extends WebTestCase
         $this->assertSame('name', $prompts[1]['arguments'][0]['name']);
         $this->assertSame('The name of the person to greet.', $prompts[1]['arguments'][0]['description']);
         $this->assertFalse($prompts[1]['arguments'][0]['required']);
+
+        $this->assertSame('say_hello', $prompts[2]['name']);
+        $this->assertSame('Says hello', $prompts[2]['description']);
+        $this->assertArrayNotHasKey('arguments', $prompts[2]);
     }
 
     public function testPromptGet(): void
@@ -432,6 +477,41 @@ class EntrypointControllerTest extends WebTestCase
         // Verify that the content text contains the changes and scope
         $this->assertStringContainsString($changes, $content['text']);
         $this->assertStringContainsString($scope, $content['text']);
+    }
+
+    public function testPromptGetWithoutArguments(): void
+    {
+        $response = $this->request(
+            method: Request::METHOD_POST,
+            url: '/mcp',
+            body: [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'prompts/get',
+                'params' => [
+                    'name' => 'say_hello',
+                ],
+            ],
+        );
+
+        $responseContent = json_decode((string) $response->getContent(), true);
+
+        $this->assertSame([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => [
+                'description' => 'Says hello',
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => [
+                            'type' => 'text',
+                            'text' => 'Hello!',
+                        ],
+                    ],
+                ],
+            ],
+        ], $responseContent);
     }
 
     public function testPromptGetWithNonRequiredParameterLeftEmpty(): void

@@ -65,15 +65,21 @@ class ToolPass implements CompilerPassInterface
             }
 
             $invokeMethodParameters = $refClass->getMethod('__invoke')->getParameters();
-            if (\count($invokeMethodParameters) !== 1) {
+            if (\count($invokeMethodParameters) > 1) {
                 throw new \LogicException(\sprintf(
-                    'Class "%s" must have exactly one parameter in the __invoke method to be used as a tool.',
+                    'Class "%s" must have a maximum of 1 parameter in the __invoke method to be used as a tool.',
                     $class,
                 ));
             }
 
-            $invokeMethodParameter = $invokeMethodParameters[0];
-            if ($invokeMethodParameter->getType() === null || $invokeMethodParameter->getType()->isBuiltin()) { // @phpstan-ignore method.notFound
+            $invokeMethodParameter = $invokeMethodParameters[0] ?? null;
+            if (
+                $invokeMethodParameter !== null
+                && (
+                    $invokeMethodParameter->getType() === null
+                    || $invokeMethodParameter->getType()->isBuiltin() // @phpstan-ignore method.notFound
+                )
+            ) {
                 throw new \LogicException(\sprintf(
                     'The parameter of the __invoke method in class "%s" must be a non-builtin type.',
                     $class,
@@ -89,8 +95,10 @@ class ToolPass implements CompilerPassInterface
                 ));
             }
 
-            $inputSchemaClassName = $invokeMethodParameter->getType()->getName(); // @phpstan-ignore method.notFound
-            $inputSchema = $schemaExtractor->extract($inputSchemaClassName);
+            $inputSchemaClassName = $invokeMethodParameter?->getType()?->getName(); // @phpstan-ignore method.notFound
+            $inputSchema = $invokeMethodParameter === null
+                ? []
+                : $schemaExtractor->extract($inputSchemaClassName);
 
             $definition->addTag(name: 'mcp_server.tool', attributes: [
                 'name' => $asTool->name,
