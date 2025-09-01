@@ -2,7 +2,7 @@
 
 [![PHP CI](https://github.com/EdouardCourty/mcp-server-bundle/actions/workflows/php_ci.yml/badge.svg)](https://github.com/EdouardCourty/mcp-server-bundle/actions/workflows/php_ci.yml)
 
-A powerful Symfony bundle for handling MCP (Message Context Protocol) server implementations, providing tools for JSON-RPC request handling and tool management.    
+A powerful Symfony bundle for handling MCP (Model Context Protocol) server implementations, providing tools for JSON-RPC request handling and tool management.    
 _Read the [official MCP specification](https://modelcontextprotocol.io/docs/concepts/tools#overview)._
 
 MCP Servers provide the fundamental building blocks for adding context to language models via MCP.  
